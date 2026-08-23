@@ -82,6 +82,17 @@
         </div>
         <button class="btn-secondary" id="clear-trace-btn" type="button">Clear trace</button>
       </div>
+
+      <div class="field-row" id="whatif-row" hidden>
+        <button class="btn-secondary" id="save-baseline-btn" type="button">Save as "how it is now"</button>
+        <button class="btn-secondary" id="reset-baseline-btn" type="button" hidden>Reset to "how it is now"</button>
+        <p class="field-hint" id="whatif-hint">Trace your horizon as it really looks first. Then hit this button, and try editing the trace to test an idea — like adding a bump where a new tree would grow, or flattening a spot where you'd trim one back — to see what it would actually change.</p>
+      </div>
+    </section>
+
+    <section class="panel" id="whatif-panel" hidden>
+      <h2 class="panel-title">What if you made that change?</h2>
+      <div class="whatif-compare" id="whatif-compare"></div>
     </section>
 
     <section class="panel" id="results-panel" hidden>

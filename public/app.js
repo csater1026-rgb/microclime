@@ -76,8 +76,20 @@ const observedFrostInput = el("observed-frost-input");
 const saveObservationBtn = el("save-observation-btn");
 const calibrationStatus = el("calibration-status");
 const calibrationLogEl = el("calibration-log");
+const whatifRow = el("whatif-row");
+const saveBaselineBtn = el("save-baseline-btn");
+const resetBaselineBtn = el("reset-baseline-btn");
+const whatifPanel = el("whatif-panel");
+const whatifCompare = el("whatif-compare");
 
 let currentRows = [];
+
+// Phase 4 — what-if simulation. The baseline is a session-only snapshot of
+// the horizon "as it really is right now" (trace + heading + fov). Once
+// saved, further edits to the live trace are a hypothetical — plant a tree,
+// trim one back — and every recompute shows both real and hypothetical
+// side by side instead of just overwriting the real picture.
+let baseline = null; // { trace, heading, fov } or null
 
 function initInputs() {
   latInput.value = state.lat ?? "";
@@ -146,6 +158,10 @@ photoInput.addEventListener("change", () => {
       canvas.height = Math.round((wrapWidth * img.height) / img.width);
       canvasWrap.hidden = false;
       headingRow.hidden = false;
+      whatifRow.hidden = false;
+      baseline = null;
+      resetBaselineBtn.hidden = true;
+      saveBaselineBtn.textContent = 'Save as "how it is now"';
       drawCanvas();
       recompute();
     };
@@ -192,6 +208,24 @@ clearTraceBtn.addEventListener("click", () => {
   recompute();
 });
 
+saveBaselineBtn.addEventListener("click", () => {
+  baseline = { trace: trace.slice(), heading: state.heading, fov: state.fov };
+  resetBaselineBtn.hidden = false;
+  saveBaselineBtn.textContent = 'Update "how it is now"';
+  recompute();
+});
+
+resetBaselineBtn.addEventListener("click", () => {
+  if (!baseline) return;
+  trace = baseline.trace.slice();
+  state.heading = baseline.heading;
+  state.fov = baseline.fov;
+  initInputs();
+  saveState();
+  drawCanvas();
+  recompute();
+});
+
 headingInput.addEventListener("input", () => {
   state.heading = ((parseInt(headingInput.value, 10) || 0) % 360 + 360) % 360;
   saveState();
@@ -203,30 +237,11 @@ fovInput.addEventListener("input", () => {
   recompute();
 });
 
-// Fills gaps in the sparse trace array via linear interpolation between the
-// nearest set buckets on each side; flat-extrapolates past the outer ones.
-// Returns null if nothing has been traced yet.
+// Resolves the live in-progress trace (gaps filled by linear interpolation
+// between nearest set buckets, flat-extrapolated past the outer ones — see
+// resolveSparseTrace). Returns null if nothing has been traced yet.
 function resolvedTrace() {
-  const setIdx = [];
-  for (let i = 0; i < BUCKETS; i++) if (trace[i] !== null) setIdx.push(i);
-  if (setIdx.length === 0) return null;
-
-  const dense = new Array(BUCKETS);
-  for (let i = 0; i < BUCKETS; i++) {
-    if (trace[i] !== null) {
-      dense[i] = trace[i];
-      continue;
-    }
-    let lo = null, hi = null;
-    for (const j of setIdx) {
-      if (j < i) lo = j;
-      if (j > i && hi === null) hi = j;
-    }
-    if (lo === null) dense[i] = trace[hi];
-    else if (hi === null) dense[i] = trace[lo];
-    else dense[i] = trace[lo] + ((trace[hi] - trace[lo]) * (i - lo)) / (hi - lo);
-  }
-  return dense;
+  return resolveSparseTrace(trace);
 }
 
 function drawCanvas() {
@@ -264,20 +279,62 @@ function angleDiff(a, b) {
   return d;
 }
 
-// Returns the blocked elevation (degrees) at a given compass azimuth, or
-// null if that azimuth wasn't covered by the traced photo.
-function blockedElevationAt(azimuthDeg) {
-  const dense = resolvedTrace();
+// Returns the blocked elevation (degrees) at a given compass azimuth for an
+// arbitrary dense trace/heading/fov, or null if that azimuth wasn't covered.
+function blockedElevationFor(azimuthDeg, dense, heading, fov) {
   if (!dense) return 0; // no trace yet: assume open horizon
-  const rel = angleDiff(azimuthDeg, state.heading);
-  if (Math.abs(rel) > state.fov / 2) return null;
-  const xFrac = 0.5 + rel / state.fov;
+  const rel = angleDiff(azimuthDeg, heading);
+  if (Math.abs(rel) > fov / 2) return null;
+  const xFrac = 0.5 + rel / fov;
   const pos = Math.min(BUCKETS - 1, Math.max(0, xFrac * BUCKETS - 0.5));
   const i0 = Math.floor(pos);
   const i1 = Math.min(BUCKETS - 1, i0 + 1);
   const t = pos - i0;
   const yFrac = dense[i0] + (dense[i1] - dense[i0]) * t;
   return VERTICAL_FOV / 2 - yFrac * VERTICAL_FOV;
+}
+
+// Fills gaps the same way resolvedTrace() does, for an arbitrary sparse
+// trace array (used to resolve a saved baseline independently of the live
+// in-progress trace).
+function resolveSparseTrace(sparse) {
+  const setIdx = [];
+  for (let i = 0; i < BUCKETS; i++) if (sparse[i] !== null) setIdx.push(i);
+  if (setIdx.length === 0) return null;
+  const dense = new Array(BUCKETS);
+  for (let i = 0; i < BUCKETS; i++) {
+    if (sparse[i] !== null) { dense[i] = sparse[i]; continue; }
+    let lo = null, hi = null;
+    for (const j of setIdx) {
+      if (j < i) lo = j;
+      if (j > i && hi === null) hi = j;
+    }
+    if (lo === null) dense[i] = sparse[hi];
+    else if (hi === null) dense[i] = sparse[lo];
+    else dense[i] = sparse[lo] + ((sparse[hi] - sparse[lo]) * (i - lo)) / (hi - lo);
+  }
+  return dense;
+}
+
+// Computes hour-by-hour sun/shade rows for an arbitrary horizon (used for
+// both the live trace and a saved baseline).
+function computeSunRows(denseTrace, heading, fov, y, m, d) {
+  const rows = [];
+  let sunHours = 0;
+  for (let h = 0; h < 24; h++) {
+    const { elevation, azimuth } = Solar.positionAtLocalHour(y, m, d, h, state.lat, state.lon);
+    let status;
+    if (elevation <= 0) {
+      status = "night";
+    } else {
+      const blocked = blockedElevationFor(azimuth, denseTrace, heading, fov);
+      if (blocked === null) status = "no-data";
+      else if (elevation > blocked) { status = "sun"; sunHours += 1; }
+      else status = "shade";
+    }
+    rows.push({ h, elevation, azimuth, status, risk: null });
+  }
+  return { rows, sunHours };
 }
 
 // --- Calibration (Phase 3) ---
@@ -361,30 +418,38 @@ function recompute() {
   const token = ++recomputeToken;
   const [y, m, d] = state.date.split("-").map(Number);
 
-  const rows = [];
-  let sunHours = 0;
-  for (let h = 0; h < 24; h++) {
-    const { elevation, azimuth } = Solar.positionAtLocalHour(y, m, d, h, state.lat, state.lon);
-    let status;
-    if (elevation <= 0) {
-      status = "night";
-    } else {
-      const blocked = blockedElevationAt(azimuth);
-      if (blocked === null) status = "no-data";
-      else if (elevation > blocked) { status = "sun"; sunHours += 1; }
-      else status = "shade";
-    }
-    rows.push({ h, elevation, azimuth, status, risk: null });
+  const { rows, sunHours } = computeSunRows(resolvedTrace(), state.heading, state.fov, y, m, d);
+
+  let baselineResult = null;
+  if (baseline) {
+    baselineResult = computeSunRows(resolveSparseTrace(baseline.trace), baseline.heading, baseline.fov, y, m, d);
   }
 
   currentRows = rows;
   renderResults(rows, sunHours);
   renderCalibrationLog();
   calibratePanel.hidden = false;
-  loadWeatherAndRisk(token, rows, sunHours);
+  loadWeatherAndRisk(token, rows, sunHours, baselineResult);
 }
 
-async function loadWeatherAndRisk(token, rows, sunHours) {
+function applyRisk(rows, sunHours, byHour, biasC) {
+  let frostHours = 0;
+  let heatHours = 0;
+  for (const r of rows) {
+    const w = byHour.get(r.h);
+    if (!w) continue;
+    const rawLocalTemp = Risk.estimateLocalTemp(w, sunHours);
+    const localTemp = rawLocalTemp + biasC;
+    const frost = Risk.frostLevel(localTemp);
+    const heat = Risk.heatLevel(w, r.status === "sun");
+    r.risk = { localTemp, rawLocalTemp, frost, heat };
+    if (frost === "frost") frostHours += 1;
+    if (heat === "high" || heat === "elevated") heatHours += 1;
+  }
+  return { frostHours, heatHours };
+}
+
+async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
   weatherStatus.textContent = "Loading live forecast…";
   riskSummary.hidden = true;
   try {
@@ -393,18 +458,12 @@ async function loadWeatherAndRisk(token, rows, sunHours) {
 
     const byHour = new Map(hourly.map((w) => [w.hour, w]));
     const biasC = computeBiasC();
-    let frostHours = 0;
-    let heatHours = 0;
-    for (const r of rows) {
-      const w = byHour.get(r.h);
-      if (!w) continue;
-      const rawLocalTemp = Risk.estimateLocalTemp(w, sunHours);
-      const localTemp = rawLocalTemp + biasC;
-      const frost = Risk.frostLevel(localTemp);
-      const heat = Risk.heatLevel(w, r.status === "sun");
-      r.risk = { localTemp, rawLocalTemp, frost, heat };
-      if (frost === "frost") frostHours += 1;
-      if (heat === "high" || heat === "elevated") heatHours += 1;
+    const { frostHours, heatHours } = applyRisk(rows, sunHours, byHour, biasC);
+
+    let baselineFrostHours = null;
+    if (baselineResult) {
+      const r = applyRisk(baselineResult.rows, baselineResult.sunHours, byHour, biasC);
+      baselineFrostHours = r.frostHours;
     }
 
     weatherStatus.textContent = "Live forecast loaded.";
@@ -415,10 +474,40 @@ async function loadWeatherAndRisk(token, rows, sunHours) {
     riskSummary.innerHTML = parts.length ? parts.join(" ") : "No elevated frost or heat risk detected for this spot on this date.";
 
     renderResults(rows, sunHours);
+    renderWhatif(sunHours, frostHours, baselineResult ? baselineResult.sunHours : null, baselineFrostHours);
   } catch (err) {
     if (token !== recomputeToken) return;
     weatherStatus.textContent = `Forecast unavailable for this date (${err.message}). Live forecasts only cover the near-term window — sun-hours above are still accurate.`;
+    renderWhatif(sunHours, null, baselineResult ? baselineResult.sunHours : null, null);
   }
+}
+
+function statHtml(label, baseVal, curVal, unit, higherIsBetter) {
+  const delta = curVal - baseVal;
+  let cls = "same", arrow = "";
+  if (delta !== 0) {
+    const better = higherIsBetter ? delta > 0 : delta < 0;
+    cls = better ? "better" : "worse";
+    arrow = delta > 0 ? "+" : "";
+  }
+  return `<div class="whatif-stat">
+    <div class="stat-label">${label}</div>
+    <div class="stat-values">${baseVal}${unit}<span class="stat-arrow">→</span>${curVal}${unit}</div>
+    <div class="stat-delta ${cls}">${delta === 0 ? "no change" : `${arrow}${delta}${unit}`}</div>
+  </div>`;
+}
+
+function renderWhatif(sunHours, frostHours, baselineSunHours, baselineFrostHours) {
+  if (baselineSunHours === null) {
+    whatifPanel.hidden = true;
+    return;
+  }
+  whatifPanel.hidden = false;
+  const parts = [statHtml("Sun-hours per day", baselineSunHours, sunHours, "h", true)];
+  if (frostHours !== null && baselineFrostHours !== null) {
+    parts.push(statHtml("Hours of frost risk tonight", baselineFrostHours, frostHours, "h", false));
+  }
+  whatifCompare.innerHTML = parts.join("");
 }
 
 function renderResults(rows, sunHours) {

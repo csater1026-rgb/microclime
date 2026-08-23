@@ -243,6 +243,35 @@ input[type="file"] {
 .calib-entry .delta-cold { color: var(--accent-2); }
 .calib-entry .delta-warm { color: var(--accent); }
 
+#whatif-row {
+  margin-top: 14px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+#whatif-hint { max-width: 520px; }
+
+.whatif-compare {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.whatif-stat {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  min-width: 200px;
+}
+.whatif-stat .stat-label { font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+.whatif-stat .stat-values { font-size: 20px; font-weight: 700; }
+.whatif-stat .stat-arrow { color: var(--text-dim); font-weight: 400; margin: 0 8px; }
+.whatif-stat .stat-delta { font-size: 13px; margin-top: 4px; }
+.whatif-stat .stat-delta.better { color: var(--good); }
+.whatif-stat .stat-delta.worse { color: var(--danger); }
+.whatif-stat .stat-delta.same { color: var(--text-dim); }
+
 @media (max-width: 640px) {
   .main { padding: 32px 16px 60px; }
   .hero h1 { font-size: 26px; }
