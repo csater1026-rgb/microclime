@@ -143,6 +143,11 @@ input[type="file"] {
   font-size: 14px;
 }
 
+.photo-source-row {
+  display: flex;
+  gap: 12px;
+}
+
 .canvas-wrap {
   margin-top: 16px;
   border-radius: 8px;

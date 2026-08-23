@@ -56,7 +56,10 @@ const lonInput = el("lon-input");
 const dateInput = el("date-input");
 const useLocationBtn = el("use-location-btn");
 const locationStatus = el("location-status");
-const photoInput = el("photo-input");
+const takePhotoBtn = el("take-photo-btn");
+const uploadPhotoBtn = el("upload-photo-btn");
+const cameraInput = el("camera-input");
+const fileInput = el("file-input");
 const canvasWrap = el("canvas-wrap");
 const canvas = el("trace-canvas");
 const ctx = canvas.getContext("2d");
@@ -144,8 +147,13 @@ useLocationBtn.addEventListener("click", () => {
 
 // --- Photo + horizon tracing ---
 
-photoInput.addEventListener("change", () => {
-  const file = photoInput.files?.[0];
+takePhotoBtn.addEventListener("click", () => cameraInput.click());
+uploadPhotoBtn.addEventListener("click", () => fileInput.click());
+cameraInput.addEventListener("change", () => loadPhotoFrom(cameraInput));
+fileInput.addEventListener("change", () => loadPhotoFrom(fileInput));
+
+function loadPhotoFrom(input) {
+  const file = input.files?.[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = () => {
@@ -168,7 +176,7 @@ photoInput.addEventListener("change", () => {
     img.src = reader.result;
   };
   reader.readAsDataURL(file);
-});
+}
 
 let tracing = false;
 

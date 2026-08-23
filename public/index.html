@@ -63,7 +63,12 @@
         blocking height at each point.
       </p>
 
-      <input type="file" id="photo-input" accept="image/*" capture="environment" />
+      <div class="photo-source-row">
+        <button class="btn-secondary" id="take-photo-btn" type="button">Take a photo</button>
+        <button class="btn-secondary" id="upload-photo-btn" type="button">Upload a file</button>
+      </div>
+      <input type="file" id="camera-input" accept="image/*" capture="environment" hidden />
+      <input type="file" id="file-input" accept="image/*" hidden />
 
       <div class="canvas-wrap" id="canvas-wrap" hidden>
         <canvas id="trace-canvas"></canvas>
