@@ -17,7 +17,15 @@ function defaultState() {
     date: iso,
     heading: 180,
     fov: 60,
+    log: [], // calibration observations: { date, observedC, predictedC, frost }
   };
+}
+
+function cToF(c) {
+  return (c * 9) / 5 + 32;
+}
+function fToC(f) {
+  return ((f - 32) * 5) / 9;
 }
 
 function loadState() {
@@ -62,6 +70,14 @@ const weatherStatus = el("weather-status");
 const riskSummary = el("risk-summary");
 const hourStrip = el("hour-strip");
 const hourTableBody = el("hour-table-body");
+const calibratePanel = el("calibrate-panel");
+const observedTempInput = el("observed-temp-input");
+const observedFrostInput = el("observed-frost-input");
+const saveObservationBtn = el("save-observation-btn");
+const calibrationStatus = el("calibration-status");
+const calibrationLogEl = el("calibration-log");
+
+let currentRows = [];
 
 function initInputs() {
   latInput.value = state.lat ?? "";
@@ -264,6 +280,75 @@ function blockedElevationAt(azimuthDeg) {
   return VERTICAL_FOV / 2 - yFrac * VERTICAL_FOV;
 }
 
+// --- Calibration (Phase 3) ---
+//
+// Every logged entry captures both what the model predicted for that
+// night's low at this exact spot AND what the user says actually happened.
+// The bias is just the running average of (observed - predicted) across
+// all logged entries — simple, but a real, honest self-correction: the
+// model gets closer to this specific spot's truth the more it's used,
+// instead of staying a static one-shot prediction forever.
+
+function computeBiasC() {
+  const usable = state.log.filter((e) => typeof e.predictedC === "number");
+  if (usable.length === 0) return 0;
+  const sum = usable.reduce((acc, e) => acc + (e.observedC - e.predictedC), 0);
+  return sum / usable.length;
+}
+
+function nightPredictedLowC(rows) {
+  const nightTemps = rows
+    .filter((r) => r.status === "night" && r.risk && typeof r.risk.rawLocalTemp === "number")
+    .map((r) => r.risk.rawLocalTemp);
+  if (nightTemps.length === 0) return null;
+  return Math.min(...nightTemps);
+}
+
+function renderCalibrationLog() {
+  const bias = computeBiasC();
+  const biasF = (bias * 9) / 5; // a temperature *difference* in Celsius converts to Fahrenheit by *9/5 only (no +32)
+  const usableCount = state.log.filter((e) => typeof e.predictedC === "number").length;
+  calibrationStatus.textContent =
+    usableCount > 0
+      ? `Calibrated using ${usableCount} logged observation${usableCount === 1 ? "" : "s"} — average adjustment: ${biasF >= 0 ? "+" : ""}${biasF.toFixed(1)}°F.`
+      : "No observations logged yet — every estimate above is the unadjusted model.";
+
+  calibrationLogEl.innerHTML = state.log
+    .slice()
+    .reverse()
+    .map((e) => {
+      const observedF = cToF(e.observedC).toFixed(1);
+      const predictedF = typeof e.predictedC === "number" ? cToF(e.predictedC).toFixed(1) : null;
+      const deltaF = predictedF !== null ? (e.observedC - e.predictedC) * 9 / 5 : null;
+      const deltaText = deltaF !== null
+        ? `<span class="${deltaF < 0 ? "delta-cold" : "delta-warm"}">${deltaF >= 0 ? "+" : ""}${deltaF.toFixed(1)}°F vs. predicted</span>`
+        : "no prediction to compare (forecast wasn't loaded)";
+      return `<div class="calib-entry"><span>${e.date} — observed ${observedF}°F${e.frost ? ", frost" : ""}</span><span>${deltaText}</span></div>`;
+    })
+    .join("");
+}
+
+saveObservationBtn.addEventListener("click", () => {
+  const raw = observedTempInput.value.trim();
+  if (raw === "" || Number.isNaN(parseFloat(raw))) {
+    calibrationStatus.textContent = "Enter the actual temperature you observed (°F) first.";
+    return;
+  }
+  const observedF = parseFloat(raw);
+  const predictedC = nightPredictedLowC(currentRows);
+  state.log.push({
+    date: state.date,
+    observedC: fToC(observedF),
+    predictedC,
+    frost: observedFrostInput.checked,
+  });
+  saveState();
+  observedTempInput.value = "";
+  observedFrostInput.checked = false;
+  renderCalibrationLog();
+  recompute(); // re-apply the updated bias to the current view
+});
+
 // --- Recompute + render ---
 
 let recomputeToken = 0;
@@ -292,7 +377,10 @@ function recompute() {
     rows.push({ h, elevation, azimuth, status, risk: null });
   }
 
+  currentRows = rows;
   renderResults(rows, sunHours);
+  renderCalibrationLog();
+  calibratePanel.hidden = false;
   loadWeatherAndRisk(token, rows, sunHours);
 }
 
@@ -304,15 +392,17 @@ async function loadWeatherAndRisk(token, rows, sunHours) {
     if (token !== recomputeToken) return; // a newer request superseded this one
 
     const byHour = new Map(hourly.map((w) => [w.hour, w]));
+    const biasC = computeBiasC();
     let frostHours = 0;
     let heatHours = 0;
     for (const r of rows) {
       const w = byHour.get(r.h);
       if (!w) continue;
-      const localTemp = Risk.estimateLocalTemp(w, sunHours);
+      const rawLocalTemp = Risk.estimateLocalTemp(w, sunHours);
+      const localTemp = rawLocalTemp + biasC;
       const frost = Risk.frostLevel(localTemp);
       const heat = Risk.heatLevel(w, r.status === "sun");
-      r.risk = { localTemp, frost, heat };
+      r.risk = { localTemp, rawLocalTemp, frost, heat };
       if (frost === "frost") frostHours += 1;
       if (heat === "high" || heat === "elevated") heatHours += 1;
     }
@@ -355,7 +445,7 @@ function renderResults(rows, sunHours) {
       let riskText = "—";
       let riskCls = "";
       if (r.risk) {
-        tempText = `${r.risk.localTemp.toFixed(1)}°C`;
+        tempText = `${cToF(r.risk.localTemp).toFixed(1)}°F`;
         if (r.risk.frost !== "low") { riskText = `${r.risk.frost} frost`; riskCls = `risk-${r.risk.frost}`; }
         else if (r.risk.heat !== "low") { riskText = `${r.risk.heat} heat`; riskCls = `risk-${r.risk.heat}`; }
         else riskText = "none";

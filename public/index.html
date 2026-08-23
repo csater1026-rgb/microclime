@@ -93,10 +93,31 @@
 
       <table class="hour-table" id="hour-table">
         <thead>
-          <tr><th>Hour</th><th>Sun elevation</th><th>Azimuth</th><th>Status</th><th>Local temp est.</th><th>Risk</th></tr>
+          <tr><th>Hour</th><th>Sun elevation</th><th>Azimuth</th><th>Status</th><th>Local temp est. (°F)</th><th>Risk</th></tr>
         </thead>
         <tbody id="hour-table-body"></tbody>
       </table>
+    </section>
+
+    <section class="panel" id="calibrate-panel" hidden>
+      <h2 class="panel-title">4. Calibrate to your spot</h2>
+      <p class="panel-sub">
+        The model above is a prediction. Log what actually happened here and
+        it gets more accurate for this exact spot every time — not a static
+        lookup table, a model that learns your yard.
+      </p>
+      <div class="field-row">
+        <div class="field">
+          <label for="observed-temp-input">Actual overnight low here (°F)</label>
+          <input type="number" id="observed-temp-input" placeholder="e.g. 29" />
+        </div>
+        <div class="field field-checkbox">
+          <label><input type="checkbox" id="observed-frost-input" /> Frost happened here</label>
+        </div>
+        <button class="btn-secondary" id="save-observation-btn" type="button">Save observation</button>
+      </div>
+      <p class="field-hint" id="calibration-status"></p>
+      <div class="calibration-log" id="calibration-log"></div>
     </section>
   </main>
 
