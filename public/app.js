@@ -18,6 +18,7 @@ function defaultState() {
     heading: 180,
     fov: 60,
     log: [], // calibration observations: { date, observedC, predictedC, frost }
+    spots: [], // saved zones: { id, name, lat, lon, trace, heading, fov }
   };
 }
 
@@ -84,6 +85,11 @@ const saveBaselineBtn = el("save-baseline-btn");
 const resetBaselineBtn = el("reset-baseline-btn");
 const whatifPanel = el("whatif-panel");
 const whatifCompare = el("whatif-compare");
+const saveSpotRow = el("save-spot-row");
+const spotNameInput = el("spot-name-input");
+const saveSpotBtn = el("save-spot-btn");
+const spotsPanel = el("spots-panel");
+const spotsList = el("spots-list");
 
 let currentRows = [];
 
@@ -167,6 +173,7 @@ function loadPhotoFrom(input) {
       canvasWrap.hidden = false;
       headingRow.hidden = false;
       whatifRow.hidden = false;
+      saveSpotRow.hidden = false;
       baseline = null;
       resetBaselineBtn.hidden = true;
       saveBaselineBtn.textContent = 'Save as "how it is now"';
@@ -234,6 +241,111 @@ resetBaselineBtn.addEventListener("click", () => {
   recompute();
 });
 
+// --- Saved spots (Phase 5) ---
+//
+// A named snapshot of a traced horizon (trace + heading + fov + location),
+// persisted so multiple spots in the same yard can be compared side by
+// side. The photo itself isn't saved (too large for localStorage) — only
+// the traced horizon, which is all the math actually needs.
+
+function renderSpots() {
+  if (state.spots.length === 0) {
+    spotsPanel.hidden = true;
+    return;
+  }
+  spotsPanel.hidden = false;
+  const [y, m, d] = (state.date || defaultState().date).split("-").map(Number);
+
+  spotsList.innerHTML = state.spots
+    .map((spot) => {
+      const lat = typeof spot.lat === "number" ? spot.lat : state.lat;
+      const lon = typeof spot.lon === "number" ? spot.lon : state.lon;
+      if (typeof lat !== "number" || typeof lon !== "number") {
+        return `<div class="spot-card" data-spot-id="${spot.id}">
+          <div class="spot-info">
+            <span class="spot-name">${spot.name}</span>
+            <div class="spot-suggestion">No location saved for this spot — set a location above and reload it to compute sun-hours.</div>
+          </div>
+          <div class="spot-actions">
+            <button class="btn-secondary spot-load-btn" type="button">Load</button>
+            <button class="btn-secondary spot-delete-btn" type="button">Delete</button>
+          </div>
+        </div>`;
+      }
+      const dense = resolveSparseTrace(spot.trace);
+      const { sunHours } = computeSunRows(dense, spot.heading, spot.fov, lat, lon, y, m, d);
+      const zone = Zones.classify(sunHours);
+      const zoneClass = zone.label === "Full sun" ? "full-sun" : zone.label === "Partial sun" ? "partial-sun" : "mostly-shade";
+      return `<div class="spot-card" data-spot-id="${spot.id}">
+        <div class="spot-info">
+          <span class="spot-name">${spot.name}</span>
+          <span class="spot-zone ${zoneClass}">${zone.label} — ${sunHours}h</span>
+          <div class="spot-suggestion">${zone.suggestion}</div>
+        </div>
+        <div class="spot-actions">
+          <button class="btn-secondary spot-load-btn" type="button">Load</button>
+          <button class="btn-secondary spot-delete-btn" type="button">Delete</button>
+        </div>
+      </div>`;
+    })
+    .join("");
+}
+
+saveSpotBtn.addEventListener("click", () => {
+  if (!resolvedTrace()) {
+    calibrationStatus.textContent = "Trace the horizon in the photo above before saving this spot.";
+    return;
+  }
+  const name = spotNameInput.value.trim() || `Spot ${state.spots.length + 1}`;
+  state.spots.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    name,
+    lat: state.lat,
+    lon: state.lon,
+    trace: trace.slice(),
+    heading: state.heading,
+    fov: state.fov,
+  });
+  saveState();
+  spotNameInput.value = "";
+  renderSpots();
+});
+
+spotsList.addEventListener("click", (e) => {
+  const card = e.target.closest(".spot-card");
+  if (!card) return;
+  const id = card.dataset.spotId;
+  const spot = state.spots.find((s) => s.id === id);
+  if (!spot) return;
+
+  if (e.target.classList.contains("spot-load-btn")) {
+    photoImg = null; // the original photo isn't saved — just the traced line
+    trace = spot.trace.slice();
+    state.heading = spot.heading;
+    state.fov = spot.fov;
+    if (typeof spot.lat === "number") state.lat = spot.lat;
+    if (typeof spot.lon === "number") state.lon = spot.lon;
+    initInputs();
+    saveState();
+    canvas.width = canvasWrap.clientWidth || 640;
+    canvas.height = Math.round(canvas.width * 0.625);
+    canvasWrap.hidden = false;
+    headingRow.hidden = false;
+    whatifRow.hidden = false;
+    saveSpotRow.hidden = false;
+    spotNameInput.value = spot.name;
+    baseline = null;
+    resetBaselineBtn.hidden = true;
+    saveBaselineBtn.textContent = 'Save as "how it is now"';
+    drawCanvas();
+    recompute();
+  } else if (e.target.classList.contains("spot-delete-btn")) {
+    state.spots = state.spots.filter((s) => s.id !== id);
+    saveState();
+    renderSpots();
+  }
+});
+
 headingInput.addEventListener("input", () => {
   state.heading = ((parseInt(headingInput.value, 10) || 0) % 360 + 360) % 360;
   saveState();
@@ -253,9 +365,15 @@ function resolvedTrace() {
 }
 
 function drawCanvas() {
-  if (!photoImg) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(photoImg, 0, 0, canvas.width, canvas.height);
+  if (photoImg) {
+    ctx.drawImage(photoImg, 0, 0, canvas.width, canvas.height);
+  } else {
+    // No photo loaded (e.g. a saved spot reopened without its original
+    // photo) — still show the traced horizon line on a neutral background.
+    ctx.fillStyle = "#0f1620";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
   const dense = resolvedTrace();
   if (!dense) return;
@@ -325,12 +443,14 @@ function resolveSparseTrace(sparse) {
 }
 
 // Computes hour-by-hour sun/shade rows for an arbitrary horizon (used for
-// both the live trace and a saved baseline).
-function computeSunRows(denseTrace, heading, fov, y, m, d) {
+// the live trace, a saved baseline, and each saved spot — each with its own
+// coordinates, since a spot's saved location shouldn't shift if the
+// currently-loaded working location changes).
+function computeSunRows(denseTrace, heading, fov, lat, lon, y, m, d) {
   const rows = [];
   let sunHours = 0;
   for (let h = 0; h < 24; h++) {
-    const { elevation, azimuth } = Solar.positionAtLocalHour(y, m, d, h, state.lat, state.lon);
+    const { elevation, azimuth } = Solar.positionAtLocalHour(y, m, d, h, lat, lon);
     let status;
     if (elevation <= 0) {
       status = "night";
@@ -426,16 +546,17 @@ function recompute() {
   const token = ++recomputeToken;
   const [y, m, d] = state.date.split("-").map(Number);
 
-  const { rows, sunHours } = computeSunRows(resolvedTrace(), state.heading, state.fov, y, m, d);
+  const { rows, sunHours } = computeSunRows(resolvedTrace(), state.heading, state.fov, state.lat, state.lon, y, m, d);
 
   let baselineResult = null;
   if (baseline) {
-    baselineResult = computeSunRows(resolveSparseTrace(baseline.trace), baseline.heading, baseline.fov, y, m, d);
+    baselineResult = computeSunRows(resolveSparseTrace(baseline.trace), baseline.heading, baseline.fov, state.lat, state.lon, y, m, d);
   }
 
   currentRows = rows;
   renderResults(rows, sunHours);
   renderCalibrationLog();
+  renderSpots();
   calibratePanel.hidden = false;
   loadWeatherAndRisk(token, rows, sunHours, baselineResult);
 }
@@ -556,3 +677,4 @@ function renderResults(rows, sunHours) {
 
 initInputs();
 recompute();
+renderSpots();

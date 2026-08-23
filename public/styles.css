@@ -277,6 +277,40 @@ input[type="file"] {
 .whatif-stat .stat-delta.worse { color: var(--danger); }
 .whatif-stat .stat-delta.same { color: var(--text-dim); }
 
+.spots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.spot-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.spot-card .spot-info { flex: 1; min-width: 200px; }
+.spot-card .spot-name { font-weight: 700; font-size: 15px; }
+.spot-card .spot-zone {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 8px;
+}
+.spot-card .spot-zone.full-sun { background: rgba(244,169,64,0.2); color: var(--accent); }
+.spot-card .spot-zone.partial-sun { background: rgba(79,179,232,0.2); color: var(--accent-2); }
+.spot-card .spot-zone.mostly-shade { background: rgba(159,176,194,0.2); color: var(--text-dim); }
+.spot-card .spot-suggestion { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+.spot-card .spot-actions { display: flex; gap: 8px; }
+
 @media (max-width: 640px) {
   .main { padding: 32px 16px 60px; }
   .hero h1 { font-size: 26px; }

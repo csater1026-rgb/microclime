@@ -93,11 +93,26 @@
         <button class="btn-secondary" id="reset-baseline-btn" type="button" hidden>Reset to "how it is now"</button>
         <p class="field-hint" id="whatif-hint">Trace your horizon as it really looks first. Then hit this button, and try editing the trace to test an idea — like adding a bump where a new tree would grow, or flattening a spot where you'd trim one back — to see what it would actually change.</p>
       </div>
+
+      <div class="field-row" id="save-spot-row" hidden>
+        <div class="field">
+          <label for="spot-name-input">Name this spot</label>
+          <input type="text" id="spot-name-input" placeholder="e.g. Back corner, Front bed" />
+        </div>
+        <button class="btn-secondary" id="save-spot-btn" type="button">Save this spot</button>
+        <p class="field-hint">Comparing more than one spot in your yard? Trace each one and save it here to build a map of your whole yard's sun zones.</p>
+      </div>
     </section>
 
     <section class="panel" id="whatif-panel" hidden>
       <h2 class="panel-title">What if you made that change?</h2>
       <div class="whatif-compare" id="whatif-compare"></div>
+    </section>
+
+    <section class="panel" id="spots-panel" hidden>
+      <h2 class="panel-title">5. Your yard's sun zones</h2>
+      <p class="panel-sub">Every spot you've saved, grouped by how much sun it actually gets — so you know what to plant where.</p>
+      <div class="spots-list" id="spots-list"></div>
     </section>
 
     <section class="panel" id="results-panel" hidden>
@@ -149,6 +164,7 @@
   <script src="./solar.js"></script>
   <script src="./weather.js"></script>
   <script src="./risk.js"></script>
+  <script src="./zones.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
