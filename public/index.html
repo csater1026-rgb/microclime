@@ -31,12 +31,72 @@
       </p>
     </section>
 
-    <section class="status-card" id="status-card">
-      <p>Core build in progress. Next up: mapping your real horizon and
-      computing your spot's actual sun-hours, hour by hour.</p>
+    <section class="panel" id="location-panel">
+      <h2 class="panel-title">1. Where is this spot?</h2>
+      <div class="field-row">
+        <div class="field">
+          <label for="lat-input">Latitude</label>
+          <input type="text" id="lat-input" inputmode="decimal" placeholder="e.g. 39.7392" />
+        </div>
+        <div class="field">
+          <label for="lon-input">Longitude</label>
+          <input type="text" id="lon-input" inputmode="decimal" placeholder="e.g. -104.9903" />
+        </div>
+        <button class="btn-secondary" id="use-location-btn" type="button">Use my location</button>
+      </div>
+      <p class="field-hint" id="location-status"></p>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="date-input">Date</label>
+          <input type="date" id="date-input" />
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="horizon-panel">
+      <h2 class="panel-title">2. Trace your real horizon</h2>
+      <p class="panel-sub">
+        Take a photo from the exact spot, holding your phone level and
+        pointed at one direction. Then trace the skyline — where trees,
+        roofs, or fences block the sky. Click along the photo to mark the
+        blocking height at each point.
+      </p>
+
+      <input type="file" id="photo-input" accept="image/*" capture="environment" />
+
+      <div class="canvas-wrap" id="canvas-wrap" hidden>
+        <canvas id="trace-canvas"></canvas>
+      </div>
+
+      <div class="field-row" id="heading-row" hidden>
+        <div class="field">
+          <label for="heading-input">Compass heading of photo center</label>
+          <input type="number" id="heading-input" min="0" max="359" value="180" />
+          <span class="field-hint">0 = North, 90 = East, 180 = South, 270 = West</span>
+        </div>
+        <div class="field">
+          <label for="fov-input">Horizontal field of view (°)</label>
+          <input type="number" id="fov-input" min="20" max="120" value="60" />
+        </div>
+        <button class="btn-secondary" id="clear-trace-btn" type="button">Clear trace</button>
+      </div>
+    </section>
+
+    <section class="panel" id="results-panel" hidden>
+      <h2 class="panel-title">3. Your spot's real sun-hours</h2>
+      <p class="results-summary" id="results-summary"></p>
+      <div class="hour-strip" id="hour-strip" aria-label="Sun exposure by hour"></div>
+      <table class="hour-table" id="hour-table">
+        <thead>
+          <tr><th>Hour</th><th>Sun elevation</th><th>Azimuth</th><th>Status</th></tr>
+        </thead>
+        <tbody id="hour-table-body"></tbody>
+      </table>
     </section>
   </main>
 
+  <script src="./solar.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
