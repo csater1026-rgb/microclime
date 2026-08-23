@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Microclime — know your exact spot</title>
   <meta name="description" content="Weather apps know your zip code. Microclime knows the exact corner of your yard — real sun-hours, frost risk, and what-if planting simulation for one specific spot." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%98%80%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f4a940' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -13,7 +13,12 @@
 
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark" aria-hidden="true">☀</span>
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>
+        </svg>
+      </span>
       <div>
         <div class="brand-name">Microclime</div>
         <div class="brand-tag">know your exact spot</div>
@@ -32,7 +37,7 @@
     </section>
 
     <section class="panel" id="location-panel">
-      <h2 class="panel-title">1. Where is this spot?</h2>
+      <h2 class="panel-title"><span class="step-badge">1</span>Where is this spot?</h2>
       <div class="field-row">
         <div class="field">
           <label for="lat-input">Latitude</label>
@@ -55,7 +60,7 @@
     </section>
 
     <section class="panel" id="horizon-panel">
-      <h2 class="panel-title">2. Trace your real horizon</h2>
+      <h2 class="panel-title"><span class="step-badge">2</span>Trace your real horizon</h2>
       <p class="panel-sub">
         Take a photo from the exact spot, holding your phone level and
         pointed at one direction. Then trace the skyline — where trees,
@@ -99,8 +104,40 @@
           <label for="spot-name-input">Name this spot</label>
           <input type="text" id="spot-name-input" placeholder="e.g. Back corner, Front bed" />
         </div>
-        <button class="btn-secondary" id="save-spot-btn" type="button">Save this spot</button>
+        <button class="btn-primary" id="save-spot-btn" type="button">Save this spot</button>
         <p class="field-hint">Comparing more than one spot in your yard? Trace each one and save it here to build a map of your whole yard's sun zones.</p>
+      </div>
+    </section>
+
+    <section class="panel" id="results-panel" hidden>
+      <h2 class="panel-title"><span class="step-badge">3</span>Your spot's real sun-hours</h2>
+      <p class="results-summary" id="results-summary"></p>
+      <div class="hour-strip" id="hour-strip" aria-label="Sun exposure by hour"></div>
+      <div class="hour-legend">
+        <span class="hour-legend-item"><span class="hour-legend-swatch sun"></span>Direct sun</span>
+        <span class="hour-legend-item"><span class="hour-legend-swatch shade"></span>Shade</span>
+        <span class="hour-legend-item"><span class="hour-legend-swatch night"></span>Night</span>
+        <span class="hour-legend-item"><span class="hour-legend-swatch frost"></span>Frost risk</span>
+      </div>
+
+      <p class="weather-status" id="weather-status"></p>
+      <p class="results-summary" id="risk-summary" hidden></p>
+
+      <p class="panel-sub">Hour-by-hour detail — hover any column heading for what it means.</p>
+      <div class="table-scroll">
+        <table class="hour-table" id="hour-table">
+          <thead>
+            <tr>
+              <th title="The time of day">Hour</th>
+              <th title="How high the sun is in the sky, in degrees. 0° = right at the horizon, 90° = straight overhead.">Sun height</th>
+              <th title="Which direction the sun is in, like a compass reading. 0° = North, 90° = East, 180° = South, 270° = West.">Sun direction</th>
+              <th title="Whether this exact spot is in direct sun or blocked by whatever you traced in the photo">Status</th>
+              <th title="This app's estimate of the temperature at this exact spot, adjusted from the general forecast">Est. temp</th>
+              <th title="Whether this hour is a concern for frost or heat stress at this spot">Risk</th>
+            </tr>
+          </thead>
+          <tbody id="hour-table-body"></tbody>
+        </table>
       </div>
     </section>
 
@@ -109,38 +146,8 @@
       <div class="whatif-compare" id="whatif-compare"></div>
     </section>
 
-    <section class="panel" id="spots-panel" hidden>
-      <h2 class="panel-title">5. Your yard's sun zones</h2>
-      <p class="panel-sub">Every spot you've saved, grouped by how much sun it actually gets — so you know what to plant where.</p>
-      <div class="spots-list" id="spots-list"></div>
-    </section>
-
-    <section class="panel" id="results-panel" hidden>
-      <h2 class="panel-title">3. Your spot's real sun-hours</h2>
-      <p class="results-summary" id="results-summary"></p>
-      <div class="hour-strip" id="hour-strip" aria-label="Sun exposure by hour"></div>
-
-      <p class="weather-status" id="weather-status"></p>
-      <p class="results-summary" id="risk-summary" hidden></p>
-
-      <p class="panel-sub">Hour-by-hour detail — hover any column heading for what it means.</p>
-      <table class="hour-table" id="hour-table">
-        <thead>
-          <tr>
-            <th title="The time of day">Hour</th>
-            <th title="How high the sun is in the sky, in degrees. 0° = right at the horizon, 90° = straight overhead.">Sun height</th>
-            <th title="Which direction the sun is in, like a compass reading. 0° = North, 90° = East, 180° = South, 270° = West.">Sun direction</th>
-            <th title="Whether this exact spot is in direct sun or blocked by whatever you traced in the photo">Status</th>
-            <th title="This app's estimate of the temperature at this exact spot, adjusted from the general forecast">Est. temp</th>
-            <th title="Whether this hour is a concern for frost or heat stress at this spot">Risk</th>
-          </tr>
-        </thead>
-        <tbody id="hour-table-body"></tbody>
-      </table>
-    </section>
-
     <section class="panel" id="calibrate-panel" hidden>
-      <h2 class="panel-title">4. Calibrate to your spot</h2>
+      <h2 class="panel-title"><span class="step-badge">4</span>Calibrate to your spot</h2>
       <p class="panel-sub">
         The model above is a prediction. Log what actually happened here and
         it gets more accurate for this exact spot every time — not a static
@@ -154,12 +161,32 @@
         <div class="field field-checkbox">
           <label><input type="checkbox" id="observed-frost-input" /> Frost happened here</label>
         </div>
-        <button class="btn-secondary" id="save-observation-btn" type="button">Save observation</button>
+        <button class="btn-primary" id="save-observation-btn" type="button">Save observation</button>
       </div>
       <p class="field-hint" id="calibration-status"></p>
       <div class="calibration-log" id="calibration-log"></div>
     </section>
+
+    <section class="panel" id="spots-panel" hidden>
+      <h2 class="panel-title"><span class="step-badge">5</span>Your yard's sun zones</h2>
+      <p class="panel-sub">Every spot you've saved, grouped by how much sun it actually gets — so you know what to plant where.</p>
+      <div class="spots-list" id="spots-list"></div>
+    </section>
+
+    <section class="panel" id="community-panel" hidden>
+      <h2 class="panel-title"><span class="step-badge">6</span>Your block's microclimate map</h2>
+      <p class="panel-sub">If people nearby use Microclime too, their spots combine into a map more accurate than any single weather station — everyone sees frost risk before the official forecast catches it.</p>
+      <div class="community-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <span>Demo data below — this preview shows what a shared neighborhood view would look like once more than one household is using Microclime. Your real spots aren't shared with anyone.</span>
+      </div>
+      <div class="community-map" id="community-map"></div>
+    </section>
   </main>
+
+  <footer class="site-footer">
+    Built for NextStep Hacks 2026 (theme: Earth Forward) by Christian Saterfield.
+  </footer>
 
   <script src="./solar.js"></script>
   <script src="./weather.js"></script>

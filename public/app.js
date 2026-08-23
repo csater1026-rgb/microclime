@@ -90,6 +90,8 @@ const spotNameInput = el("spot-name-input");
 const saveSpotBtn = el("save-spot-btn");
 const spotsPanel = el("spots-panel");
 const spotsList = el("spots-list");
+const communityPanel = el("community-panel");
+const communityMap = el("community-map");
 
 let currentRows = [];
 
@@ -604,11 +606,49 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
 
     renderResults(rows, sunHours);
     renderWhatif(sunHours, frostHours, baselineResult ? baselineResult.sunHours : null, baselineFrostHours);
+    renderCommunity(frostHours);
   } catch (err) {
     if (token !== recomputeToken) return;
     weatherStatus.textContent = `Forecast unavailable for this date (${err.message}). Live forecasts only cover the near-term window — sun-hours above are still accurate.`;
     renderWhatif(sunHours, null, baselineResult ? baselineResult.sunHours : null, null);
+    communityPanel.hidden = true;
   }
+}
+
+// --- Community layer (Phase 6, demo/stretch) ---
+//
+// Real version would need a backend to aggregate other households' spots —
+// out of scope for a solo build under deadline. This shows what the concept
+// looks like: "You" is your real computed frost-risk hours; the rest are
+// seeded demo neighbors so the shared-map idea can actually be seen and
+// judged, not just described.
+const DEMO_NEIGHBORS = [
+  { name: "Corner lot — Birch St", offset: 2 },
+  { name: "2 doors down", offset: -1 },
+  { name: "The place behind the fence", offset: 4 },
+];
+
+function renderCommunity(yourFrostHours) {
+  communityPanel.hidden = false;
+  const rows = [
+    { name: "You (this spot)", hours: yourFrostHours, you: true },
+    ...DEMO_NEIGHBORS.map((n) => ({ name: n.name, hours: Math.max(0, yourFrostHours + n.offset), you: false })),
+  ];
+  communityMap.innerHTML = rows
+    .map((r) => {
+      const initial = r.name.trim().charAt(0).toUpperCase();
+      const badgeCls = r.hours > 0 ? "" : "none";
+      const badgeText = r.hours > 0 ? `${r.hours}h frost risk` : "no frost risk";
+      return `<div class="community-row${r.you ? " you" : ""}">
+        <span class="community-avatar">${initial}</span>
+        <div class="community-info">
+          <div class="community-name">${r.name}</div>
+          <div class="community-detail">${r.you ? "Computed from your real trace + calibration" : "Demo data"}</div>
+        </div>
+        <span class="community-frost-badge ${badgeCls}">${badgeText}</span>
+      </div>`;
+    })
+    .join("");
 }
 
 function statHtml(label, baseVal, curVal, unit, higherIsBetter) {
