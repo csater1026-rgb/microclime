@@ -58,6 +58,8 @@ const fovInput = el("fov-input");
 const clearTraceBtn = el("clear-trace-btn");
 const resultsPanel = el("results-panel");
 const resultsSummary = el("results-summary");
+const weatherStatus = el("weather-status");
+const riskSummary = el("risk-summary");
 const hourStrip = el("hour-strip");
 const hourTableBody = el("hour-table-body");
 
@@ -264,11 +266,14 @@ function blockedElevationAt(azimuthDeg) {
 
 // --- Recompute + render ---
 
+let recomputeToken = 0;
+
 function recompute() {
   if (!hasLocation() || !state.date) {
     resultsPanel.hidden = true;
     return;
   }
+  const token = ++recomputeToken;
   const [y, m, d] = state.date.split("-").map(Number);
 
   const rows = [];
@@ -284,10 +289,46 @@ function recompute() {
       else if (elevation > blocked) { status = "sun"; sunHours += 1; }
       else status = "shade";
     }
-    rows.push({ h, elevation, azimuth, status });
+    rows.push({ h, elevation, azimuth, status, risk: null });
   }
 
   renderResults(rows, sunHours);
+  loadWeatherAndRisk(token, rows, sunHours);
+}
+
+async function loadWeatherAndRisk(token, rows, sunHours) {
+  weatherStatus.textContent = "Loading live forecast…";
+  riskSummary.hidden = true;
+  try {
+    const hourly = await Weather.fetchHourly(state.lat, state.lon, state.date);
+    if (token !== recomputeToken) return; // a newer request superseded this one
+
+    const byHour = new Map(hourly.map((w) => [w.hour, w]));
+    let frostHours = 0;
+    let heatHours = 0;
+    for (const r of rows) {
+      const w = byHour.get(r.h);
+      if (!w) continue;
+      const localTemp = Risk.estimateLocalTemp(w, sunHours);
+      const frost = Risk.frostLevel(localTemp);
+      const heat = Risk.heatLevel(w, r.status === "sun");
+      r.risk = { localTemp, frost, heat };
+      if (frost === "frost") frostHours += 1;
+      if (heat === "high" || heat === "elevated") heatHours += 1;
+    }
+
+    weatherStatus.textContent = "Live forecast loaded.";
+    riskSummary.hidden = false;
+    const parts = [];
+    if (frostHours > 0) parts.push(`<span class="sun-count" style="color:var(--danger)">${frostHours} hour${frostHours === 1 ? "" : "s"} of frost risk</span> at this exact spot tonight — colder here than the general forecast, based on how little sun and how calm/clear it is.`);
+    if (heatHours > 0) parts.push(`<span class="sun-count">${heatHours} hour${heatHours === 1 ? "" : "s"} of heat stress risk</span> — full sun during high heat.`);
+    riskSummary.innerHTML = parts.length ? parts.join(" ") : "No elevated frost or heat risk detected for this spot on this date.";
+
+    renderResults(rows, sunHours);
+  } catch (err) {
+    if (token !== recomputeToken) return;
+    weatherStatus.textContent = `Forecast unavailable for this date (${err.message}). Live forecasts only cover the near-term window — sun-hours above are still accurate.`;
+  }
 }
 
 function renderResults(rows, sunHours) {
@@ -298,8 +339,9 @@ function renderResults(rows, sunHours) {
   hourStrip.innerHTML = "";
   for (const r of rows) {
     const b = document.createElement("div");
-    b.className = `hour-block ${r.status === "no-data" ? "no-data" : r.status}`;
-    b.title = `${String(r.h).padStart(2, "0")}:00 — ${r.status}`;
+    const frostClass = r.risk && r.risk.frost === "frost" ? " frost-risk" : "";
+    b.className = `hour-block ${r.status === "no-data" ? "no-data" : r.status}${frostClass}`;
+    b.title = `${String(r.h).padStart(2, "0")}:00 — ${r.status}${r.risk ? `, ${r.risk.frost} frost risk` : ""}`;
     hourStrip.appendChild(b);
   }
 
@@ -309,7 +351,16 @@ function renderResults(rows, sunHours) {
       const cls = r.status === "sun" ? "status-sun" : r.status === "shade" ? "status-shade" : "";
       const elevText = r.elevation > 0 ? `${r.elevation.toFixed(1)}°` : "—";
       const azText = r.elevation > 0 ? `${r.azimuth.toFixed(0)}°` : "—";
-      return `<tr><td>${String(r.h).padStart(2, "0")}:00</td><td>${elevText}</td><td>${azText}</td><td class="${cls}">${label}</td></tr>`;
+      let tempText = "—";
+      let riskText = "—";
+      let riskCls = "";
+      if (r.risk) {
+        tempText = `${r.risk.localTemp.toFixed(1)}°C`;
+        if (r.risk.frost !== "low") { riskText = `${r.risk.frost} frost`; riskCls = `risk-${r.risk.frost}`; }
+        else if (r.risk.heat !== "low") { riskText = `${r.risk.heat} heat`; riskCls = `risk-${r.risk.heat}`; }
+        else riskText = "none";
+      }
+      return `<tr><td>${String(r.h).padStart(2, "0")}:00</td><td>${elevText}</td><td>${azText}</td><td class="${cls}">${label}</td><td>${tempText}</td><td class="${riskCls}">${riskText}</td></tr>`;
     })
     .join("");
 }

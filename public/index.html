@@ -87,9 +87,13 @@
       <h2 class="panel-title">3. Your spot's real sun-hours</h2>
       <p class="results-summary" id="results-summary"></p>
       <div class="hour-strip" id="hour-strip" aria-label="Sun exposure by hour"></div>
+
+      <p class="weather-status" id="weather-status"></p>
+      <p class="results-summary" id="risk-summary" hidden></p>
+
       <table class="hour-table" id="hour-table">
         <thead>
-          <tr><th>Hour</th><th>Sun elevation</th><th>Azimuth</th><th>Status</th></tr>
+          <tr><th>Hour</th><th>Sun elevation</th><th>Azimuth</th><th>Status</th><th>Local temp est.</th><th>Risk</th></tr>
         </thead>
         <tbody id="hour-table-body"></tbody>
       </table>
@@ -97,6 +101,8 @@
   </main>
 
   <script src="./solar.js"></script>
+  <script src="./weather.js"></script>
+  <script src="./risk.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
