@@ -446,9 +446,11 @@ function renderResults(rows, sunHours) {
       let riskCls = "";
       if (r.risk) {
         tempText = `${cToF(r.risk.localTemp).toFixed(1)}°F`;
-        if (r.risk.frost !== "low") { riskText = `${r.risk.frost} frost`; riskCls = `risk-${r.risk.frost}`; }
-        else if (r.risk.heat !== "low") { riskText = `${r.risk.heat} heat`; riskCls = `risk-${r.risk.heat}`; }
-        else riskText = "none";
+        const frostLabels = { frost: "frost likely", marginal: "frost possible" };
+        const heatLabels = { high: "very hot in full sun", elevated: "hot in full sun" };
+        if (r.risk.frost !== "low") { riskText = frostLabels[r.risk.frost]; riskCls = `risk-${r.risk.frost}`; }
+        else if (r.risk.heat !== "low") { riskText = heatLabels[r.risk.heat]; riskCls = `risk-${r.risk.heat}`; }
+        else riskText = "nothing to worry about";
       }
       return `<tr><td>${String(r.h).padStart(2, "0")}:00</td><td>${elevText}</td><td>${azText}</td><td class="${cls}">${label}</td><td>${tempText}</td><td class="${riskCls}">${riskText}</td></tr>`;
     })

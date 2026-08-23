@@ -71,13 +71,14 @@
 
       <div class="field-row" id="heading-row" hidden>
         <div class="field">
-          <label for="heading-input">Compass heading of photo center</label>
+          <label for="heading-input">Which way was your phone facing?</label>
           <input type="number" id="heading-input" min="0" max="359" value="180" />
-          <span class="field-hint">0 = North, 90 = East, 180 = South, 270 = West</span>
+          <span class="field-hint">In degrees, like a compass: 0 = North, 90 = East, 180 = South, 270 = West. Open the Compass app on your phone, face the same way you took the photo, and type the number it shows.</span>
         </div>
         <div class="field">
-          <label for="fov-input">Horizontal field of view (°)</label>
+          <label for="fov-input">How wide is the photo? (°)</label>
           <input type="number" id="fov-input" min="20" max="120" value="60" />
+          <span class="field-hint">Leave this at 60 unless you know your phone's camera is different — it's right for most phones.</span>
         </div>
         <button class="btn-secondary" id="clear-trace-btn" type="button">Clear trace</button>
       </div>
@@ -91,9 +92,17 @@
       <p class="weather-status" id="weather-status"></p>
       <p class="results-summary" id="risk-summary" hidden></p>
 
+      <p class="panel-sub">Hour-by-hour detail — hover any column heading for what it means.</p>
       <table class="hour-table" id="hour-table">
         <thead>
-          <tr><th>Hour</th><th>Sun elevation</th><th>Azimuth</th><th>Status</th><th>Local temp est. (°F)</th><th>Risk</th></tr>
+          <tr>
+            <th title="The time of day">Hour</th>
+            <th title="How high the sun is in the sky, in degrees. 0° = right at the horizon, 90° = straight overhead.">Sun height</th>
+            <th title="Which direction the sun is in, like a compass reading. 0° = North, 90° = East, 180° = South, 270° = West.">Sun direction</th>
+            <th title="Whether this exact spot is in direct sun or blocked by whatever you traced in the photo">Status</th>
+            <th title="This app's estimate of the temperature at this exact spot, adjusted from the general forecast">Est. temp</th>
+            <th title="Whether this hour is a concern for frost or heat stress at this spot">Risk</th>
+          </tr>
         </thead>
         <tbody id="hour-table-body"></tbody>
       </table>
