@@ -24,7 +24,80 @@
         <div class="brand-tag">know your exact spot</div>
       </div>
     </div>
+    <button class="btn-secondary how-it-works-btn" id="how-it-works-btn" type="button">How it works</button>
   </header>
+
+  <div class="modal-overlay" id="intro-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="intro-heading">
+      <div class="modal-head">
+        <h2 id="intro-heading">How Microclime works</h2>
+        <button class="icon-close" id="intro-close" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-sub">
+        Weather apps report your whole zip code. Microclime figures out what
+        the sun and cold actually do at one exact spot in your yard — using
+        real astronomy and a photo you trace yourself, not a guess. Here's
+        what each part does, in order:
+      </p>
+
+      <div class="intro-steps">
+        <div class="intro-step">
+          <span class="step-badge">1</span>
+          <div>
+            <div class="intro-step-title">Where is this spot?</div>
+            <div class="intro-step-body">Set the exact location (or use your device's location) and a date. This is what the sun-position math is calculated against.</div>
+          </div>
+        </div>
+        <div class="intro-step">
+          <span class="step-badge">2</span>
+          <div>
+            <div class="intro-step-title">Trace your real horizon</div>
+            <div class="intro-step-body">Take or upload a photo from that exact spot and trace the skyline — where trees, roofs, or fences actually block the sky. This is what makes the sun-hours specific to your spot instead of a generic estimate.</div>
+          </div>
+        </div>
+        <div class="intro-step">
+          <span class="step-badge">3</span>
+          <div>
+            <div class="intro-step-title">Your spot's real sun-hours</div>
+            <div class="intro-step-body">Combines the sun's real position with your traced horizon to show, hour by hour, whether that spot is in direct sun or shade — plus live frost and heat-stress risk, adjusted for this exact spot instead of the general forecast.</div>
+          </div>
+        </div>
+        <div class="intro-step">
+          <span class="step-badge">4</span>
+          <div>
+            <div class="intro-step-title">Calibrate to your spot</div>
+            <div class="intro-step-body">Log what actually happened overnight (the real low, whether it frosted) and the model learns a correction for your exact spot — it gets more accurate the more you use it.</div>
+          </div>
+        </div>
+        <div class="intro-step">
+          <span class="step-badge">5</span>
+          <div>
+            <div class="intro-step-title">What if you made a change?</div>
+            <div class="intro-step-body">Save your horizon as "how it is now," then edit the trace to test an idea — like planting or removing a tree — and see exactly how it would change your sun-hours and frost risk before you touch a shovel.</div>
+          </div>
+        </div>
+        <div class="intro-step">
+          <span class="step-badge">6</span>
+          <div>
+            <div class="intro-step-title">Your yard's sun zones</div>
+            <div class="intro-step-body">Save more than one spot and they're automatically grouped into Full sun, Partial sun, or Mostly shade — each with a real planting suggestion, so you know what to grow where.</div>
+          </div>
+        </div>
+        <div class="intro-step">
+          <span class="step-badge">7</span>
+          <div>
+            <div class="intro-step-title">Your block's microclimate map</div>
+            <div class="intro-step-body">A preview of what a shared neighborhood map would look like if people nearby used Microclime too — shown with demo data, since it needs more than one household to be real.</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="modal-sub">No accounts, no login — everything you save lives only in this browser.</p>
+      <div class="modal-actions">
+        <button class="btn-primary" id="intro-start-btn" type="button">Get started</button>
+      </div>
+    </div>
+  </div>
 
   <main class="main" id="main">
     <section class="hero">

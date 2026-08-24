@@ -19,6 +19,7 @@ function defaultState() {
     fov: 60,
     log: [], // calibration observations: { date, observedC, predictedC, frost }
     spots: [], // saved zones: { id, name, lat, lon, trace, heading, fov }
+    seenIntro: false,
   };
 }
 
@@ -92,6 +93,10 @@ const spotsPanel = el("spots-panel");
 const spotsList = el("spots-list");
 const communityPanel = el("community-panel");
 const communityMap = el("community-map");
+const howItWorksBtn = el("how-it-works-btn");
+const introModal = el("intro-modal");
+const introClose = el("intro-close");
+const introStartBtn = el("intro-start-btn");
 
 let currentRows = [];
 
@@ -714,6 +719,25 @@ function renderResults(rows, sunHours) {
     })
     .join("");
 }
+
+// --- Intro modal ---
+
+function closeIntro() {
+  introModal.hidden = true;
+  if (!state.seenIntro) {
+    state.seenIntro = true;
+    saveState();
+  }
+}
+
+howItWorksBtn.addEventListener("click", () => { introModal.hidden = false; });
+introClose.addEventListener("click", closeIntro);
+introStartBtn.addEventListener("click", closeIntro);
+introModal.addEventListener("click", (e) => {
+  if (e.target === introModal) closeIntro();
+});
+
+if (!state.seenIntro) introModal.hidden = false;
 
 initInputs();
 recompute();
