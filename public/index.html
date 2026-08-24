@@ -99,14 +99,48 @@
     </div>
   </div>
 
+  <div class="layout">
+    <aside class="side-nav" aria-label="Sections">
+      <nav>
+        <a class="side-nav-link" href="#location-panel" data-target="location-panel"><span class="step-badge">1</span>Location</a>
+        <a class="side-nav-link" href="#horizon-panel" data-target="horizon-panel"><span class="step-badge">2</span>Horizon</a>
+        <a class="side-nav-link" href="#results-panel" data-target="results-panel"><span class="step-badge">3</span>Sun-hours</a>
+        <a class="side-nav-link" href="#calibrate-panel" data-target="calibrate-panel"><span class="step-badge">4</span>Calibrate</a>
+        <a class="side-nav-link" href="#spots-panel" data-target="spots-panel"><span class="step-badge">5</span>Sun zones</a>
+        <a class="side-nav-link" href="#community-panel" data-target="community-panel"><span class="step-badge">6</span>Neighborhood</a>
+      </nav>
+    </aside>
+
   <main class="main" id="main">
     <section class="hero">
-      <h1>Your yard has its own weather.</h1>
-      <p class="hero-sub">
-        Weather apps report your whole zip code. Microclime maps the sun,
-        shade, and frost risk for one exact spot — using a photo of your
-        real horizon, not a generic average.
-      </p>
+      <div class="hero-text">
+        <h1>Your yard has its own weather.</h1>
+        <p class="hero-sub">
+          Weather apps report your whole zip code. Microclime maps the sun,
+          shade, and frost risk for one exact spot — using a photo of your
+          real horizon, not a generic average.
+        </p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="320" height="220" rx="18" fill="#151f2b"/>
+          <line x1="16" y1="150" x2="304" y2="150" stroke="#3a4a5e" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <circle cx="232" cy="58" r="17" fill="#f4a940"/>
+          <g stroke="#f4a940" stroke-width="2" stroke-linecap="round">
+            <line x1="232" y1="27" x2="232" y2="18"/>
+            <line x1="232" y1="89" x2="232" y2="98"/>
+            <line x1="201" y1="58" x2="192" y2="58"/>
+            <line x1="263" y1="58" x2="272" y2="58"/>
+            <line x1="209" y1="35" x2="203" y2="29"/>
+            <line x1="255" y1="81" x2="261" y2="87"/>
+            <line x1="255" y1="35" x2="261" y2="29"/>
+            <line x1="209" y1="81" x2="203" y2="87"/>
+          </g>
+          <polyline points="16,150 40,150 58,112 78,150 118,150 138,70 158,150 198,150 208,128 228,150 258,150 273,94 288,150 304,150"
+            fill="none" stroke="#f4a940" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+          <rect x="0" y="150" width="320" height="70" fill="#1b2836"/>
+        </svg>
+      </div>
     </section>
 
     <section class="panel" id="location-panel">
@@ -256,6 +290,7 @@
       <div class="community-map" id="community-map"></div>
     </section>
   </main>
+  </div>
 
   <footer class="site-footer">
     Built for NextStep Hacks 2026 (theme: Earth Forward) by Christian Saterfield.

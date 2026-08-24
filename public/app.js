@@ -739,6 +739,50 @@ introModal.addEventListener("click", (e) => {
 
 if (!state.seenIntro) introModal.hidden = false;
 
+// --- Side nav: disable links to sections that aren't shown yet, and
+// highlight whichever section is currently in view.
+function setupSideNav() {
+  const links = Array.from(document.querySelectorAll(".side-nav-link"));
+  if (links.length === 0) return;
+
+  function refreshAvailability() {
+    for (const link of links) {
+      const target = document.getElementById(link.dataset.target);
+      link.classList.toggle("disabled", !target || target.hasAttribute("hidden"));
+    }
+  }
+
+  for (const link of links) {
+    link.addEventListener("click", (e) => {
+      const target = document.getElementById(link.dataset.target);
+      if (!target || target.hasAttribute("hidden")) e.preventDefault();
+    });
+  }
+
+  const panels = document.querySelectorAll(".panel[id]");
+  new MutationObserver(refreshAvailability).observe(document.body, {
+    attributes: true,
+    attributeFilter: ["hidden"],
+    subtree: true,
+  });
+  refreshAvailability();
+
+  const sectionObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const link = links.find((l) => l.dataset.target === entry.target.id);
+        if (!link) continue;
+        for (const l of links) l.classList.remove("active");
+        link.classList.add("active");
+      }
+    },
+    { rootMargin: "-35% 0px -55% 0px" }
+  );
+  panels.forEach((p) => sectionObserver.observe(p));
+}
+setupSideNav();
+
 initInputs();
 recompute();
 renderSpots();
