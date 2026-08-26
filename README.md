@@ -2,6 +2,8 @@
 
 **NextStep Hacks 2026 submission (theme: Earth Forward).**
 
+Live: https://microclime-3emkrlicx-csater1026-rgbs-projects.vercel.app/
+
 > Weather apps report your whole zip code. Microclime maps the sun, shade,
 > and frost risk for one exact spot in your yard — using a photo of your
 > real horizon, not a generic average — and gets smarter the more you use it.
@@ -27,10 +29,13 @@ your horizon to simulate planting or removing a tree before you commit to it.
   observations over time instead of staying a static prediction.
 - **Phase 4 — what-if simulation.** Add or remove a horizon obstruction and
   instantly see the recomputed sun-hours — plan a planting before you dig.
-- **Phase 5 — multi-zone mapping** (stretch). Multiple profiled spots
-  clustered into zones with planting suggestions.
-- **Phase 6 — community layer** (stretch, on hold). Combine multiple users'
-  spots into a hyperlocal microclimate map.
+- **Phase 5 — multi-zone mapping.** Save multiple named spots; each is
+  automatically clustered into Full sun / Partial sun / Mostly shade with a
+  real planting suggestion.
+- **Phase 6 — community layer (concept demo).** Shows what a shared
+  neighborhood microclimate map would look like, combining your real
+  computed numbers with seeded demo neighbors — a real multi-user backend
+  was out of scope for a solo build on this timeline.
 
 ## Stack
 

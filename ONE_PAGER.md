@@ -94,5 +94,5 @@ wrote ourselves.
 
 ## Try it
 
-Live: _(deployed link goes here)_
+Live: https://microclime-3emkrlicx-csater1026-rgbs-projects.vercel.app/
 Source: https://github.com/csater1026-rgb/microclime
