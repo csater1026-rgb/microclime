@@ -79,6 +79,9 @@ const resultsPanel = el("results-panel");
 const resultsSummary = el("results-summary");
 const weatherStatus = el("weather-status");
 const riskSummary = el("risk-summary");
+const plantCare = el("plant-care");
+const plantCareBadge = el("plant-care-badge");
+const plantCareBody = el("plant-care-body");
 const hourStrip = el("hour-strip");
 const hourTableBody = el("hour-table-body");
 const calibratePanel = el("calibrate-panel");
@@ -650,6 +653,7 @@ function applyRisk(rows, sunHours, byHour, biasC) {
 async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
   weatherStatus.textContent = "Loading live forecast…";
   riskSummary.hidden = true;
+  plantCare.hidden = true;
   try {
     const hourly = await Weather.fetchHourly(state.lat, state.lon, state.date);
     if (token !== recomputeToken) return; // a newer request superseded this one
@@ -674,12 +678,38 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
     renderResults(rows, sunHours);
     renderWhatif(sunHours, frostHours, baselineResult ? baselineResult.sunHours : null, baselineFrostHours);
     renderCommunity(frostHours);
+    renderPlantCare(rows);
   } catch (err) {
     if (token !== recomputeToken) return;
     weatherStatus.textContent = `Forecast unavailable for this date (${err.message}). Live forecasts only cover the near-term window — sun-hours above are still accurate.`;
     renderWhatif(sunHours, null, baselineResult ? baselineResult.sunHours : null, null);
     communityPanel.hidden = true;
+    plantCare.hidden = true;
   }
+}
+
+// --- Plant/grass burn risk + watering suggestion ---
+
+function formatHour(h) {
+  const period = h < 12 ? "AM" : "PM";
+  const display = h % 12 === 0 ? 12 : h % 12;
+  return `${display}:00 ${period}`;
+}
+
+function renderPlantCare(rows) {
+  const result = PlantCare.assess(rows);
+  plantCare.hidden = false;
+  plantCareBadge.textContent = result.label;
+  plantCareBadge.className = `plant-care-badge ${result.severity}`;
+
+  let html = `<p>${result.summary}</p>`;
+  if (result.waterBefore !== null) {
+    html += `<div class="water-times">
+      <span class="water-time">Water before <b>${formatHour(result.waterBefore)}</b> — before the heat hits</span>
+      <span class="water-time">Water again after <b>${formatHour(result.waterAfter)}</b> — once it's cooled off</span>
+    </div>`;
+  }
+  plantCareBody.innerHTML = html;
 }
 
 // --- Community layer (Phase 6, demo/stretch) ---

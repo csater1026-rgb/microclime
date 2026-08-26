@@ -396,6 +396,65 @@ input[type="file"] {
 
 .table-scroll { overflow-x: auto; }
 
+.plant-care {
+  margin: 4px 0 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  overflow: hidden;
+}
+.plant-care summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.plant-care summary::-webkit-details-marker { display: none; }
+.plant-care summary::before {
+  content: "▸";
+  color: var(--text-faint);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+.plant-care[open] summary::before { transform: rotate(90deg); }
+.plant-care-title { flex: 1; }
+.plant-care-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.plant-care-badge.none { background: rgba(127,217,160,0.15); color: var(--good); }
+.plant-care-badge.mild { background: rgba(255,138,92,0.15); color: var(--accent); }
+.plant-care-badge.moderate { background: rgba(255,138,92,0.22); color: var(--accent); }
+.plant-care-badge.severe { background: rgba(255,95,109,0.18); color: var(--danger); }
+
+.plant-care-body {
+  padding: 0 16px 16px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.plant-care-body .water-times {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.plant-care-body .water-time {
+  background: var(--panel-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text);
+}
+.plant-care-body .water-time b { color: var(--accent-soft); }
+
 .weather-status {
   font-size: 13px;
   color: var(--text-faint);
