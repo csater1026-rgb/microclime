@@ -655,7 +655,14 @@ input[type="file"] {
 .intro-step-title { font-weight: 700; font-size: 14.5px; margin-bottom: 2px; }
 .intro-step-body { font-size: 13.5px; color: var(--text-dim); line-height: 1.5; }
 
+.topbar-actions { display: flex; gap: 10px; }
 .how-it-works-btn { font-size: 13px; padding: 8px 14px; }
+.reset-data-btn {
+  font-size: 13px;
+  padding: 8px 14px;
+  color: var(--danger);
+}
+.reset-data-btn:hover { border-color: var(--danger); background: rgba(255,95,109,0.1); }
 
 .camera-preview-wrap {
   border-radius: var(--radius-sm);

@@ -100,6 +100,7 @@ const spotsList = el("spots-list");
 const communityPanel = el("community-panel");
 const communityMap = el("community-map");
 const howItWorksBtn = el("how-it-works-btn");
+const resetDataBtn = el("reset-data-btn");
 const introModal = el("intro-modal");
 const introClose = el("intro-close");
 const introStartBtn = el("intro-start-btn");
@@ -792,6 +793,15 @@ function closeIntro() {
 }
 
 howItWorksBtn.addEventListener("click", () => { introModal.hidden = false; });
+
+resetDataBtn.addEventListener("click", () => {
+  const ok = window.confirm(
+    "This erases everything saved in Microclime on this device — location, calibration log, saved spots — and starts fresh from the tutorial. This can't be undone. Continue?"
+  );
+  if (!ok) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+});
 introClose.addEventListener("click", closeIntro);
 introStartBtn.addEventListener("click", closeIntro);
 introModal.addEventListener("click", (e) => {
