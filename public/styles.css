@@ -455,6 +455,53 @@ input[type="file"] {
 }
 .plant-care-body .water-time b { color: var(--accent-soft); }
 
+.plant-photo-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+}
+.plant-photo-lede { margin: 0 0 12px; font-size: 13px; color: var(--text-dim); }
+
+.plant-analysis-status {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--text-faint);
+}
+.plant-analysis-status.error { color: var(--danger); }
+
+.plant-analysis-card {
+  margin-top: 14px;
+  background: var(--panel-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+.plant-analysis-card p { margin: 6px 0; }
+.plant-analysis-card b { color: var(--text); }
+.plant-analysis-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.plant-analysis-species { font-weight: 700; font-size: 15px; color: var(--text); }
+.plant-analysis-confidence {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.plant-analysis-confidence.high { background: rgba(127,217,160,0.15); color: var(--good); }
+.plant-analysis-confidence.medium { background: rgba(255,138,92,0.15); color: var(--accent); }
+.plant-analysis-confidence.low { background: rgba(203,176,184,0.15); color: var(--text-faint); }
+.plant-analysis-tips { margin: 8px 0 0; padding-left: 18px; }
+.plant-analysis-tips li { margin-bottom: 4px; }
+
 .weather-status {
   font-size: 13px;
   color: var(--text-faint);

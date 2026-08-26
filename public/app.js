@@ -81,7 +81,12 @@ const weatherStatus = el("weather-status");
 const riskSummary = el("risk-summary");
 const plantCare = el("plant-care");
 const plantCareBadge = el("plant-care-badge");
-const plantCareBody = el("plant-care-body");
+const plantCareRule = el("plant-care-rule");
+const plantTakePhotoBtn = el("plant-take-photo-btn");
+const plantUploadPhotoBtn = el("plant-upload-photo-btn");
+const plantCameraInput = el("plant-camera-input");
+const plantFileInput = el("plant-file-input");
+const plantAnalysisResult = el("plant-analysis-result");
 const hourStrip = el("hour-strip");
 const hourTableBody = el("hour-table-body");
 const calibratePanel = el("calibrate-panel");
@@ -109,6 +114,7 @@ const introClose = el("intro-close");
 const introStartBtn = el("intro-start-btn");
 
 let currentRows = [];
+let currentSunHours = 0;
 
 // Phase 4 — what-if simulation. The baseline is a session-only snapshot of
 // the horizon "as it really is right now" (trace + heading + fov). Once
@@ -175,8 +181,10 @@ useLocationBtn.addEventListener("click", () => {
 // browsers just show the ordinary file picker instead of the webcam). Falls
 // back to the file-input capture flow if getUserMedia isn't available.
 let cameraStream = null;
+let cameraTarget = "horizon"; // "horizon" or "plant" — which flow the capture feeds into
 
-async function openCameraModal() {
+async function openCameraModal(target, fallbackInput) {
+  cameraTarget = target;
   cameraModal.hidden = false;
   cameraCaptureBtn.hidden = true;
   cameraStatus.textContent = "Starting your camera…";
@@ -186,11 +194,14 @@ async function openCameraModal() {
       audio: false,
     });
     cameraVideo.srcObject = cameraStream;
-    cameraStatus.textContent = "Hold your phone or laptop level, point it at the horizon, then capture.";
+    cameraStatus.textContent =
+      target === "plant"
+        ? "Frame the plant clearly, then capture."
+        : "Hold your phone or laptop level, point it at the horizon, then capture.";
     cameraCaptureBtn.hidden = false;
   } catch (err) {
     cameraModal.hidden = true;
-    cameraInput.click(); // fall back to the OS-level capture/upload picker
+    fallbackInput.click(); // fall back to the OS-level capture/upload picker
   }
 }
 
@@ -213,13 +224,15 @@ function captureFromVideo() {
   shot.getContext("2d").drawImage(cameraVideo, 0, 0, w, h);
   const img = new Image();
   img.onload = () => {
+    const target = cameraTarget;
     closeCameraModal();
-    applyPhoto(img);
+    if (target === "plant") handlePlantPhoto(img);
+    else applyPhoto(img);
   };
   img.src = shot.toDataURL("image/jpeg", 0.92);
 }
 
-takePhotoBtn.addEventListener("click", openCameraModal);
+takePhotoBtn.addEventListener("click", () => openCameraModal("horizon", cameraInput));
 cameraClose.addEventListener("click", closeCameraModal);
 cameraCancelBtn.addEventListener("click", closeCameraModal);
 cameraCaptureBtn.addEventListener("click", captureFromVideo);
@@ -626,6 +639,7 @@ function recompute() {
   }
 
   currentRows = rows;
+  currentSunHours = sunHours;
   renderResults(rows, sunHours);
   renderCalibrationLog();
   renderSpots();
@@ -709,8 +723,91 @@ function renderPlantCare(rows) {
       <span class="water-time">Water again after <b>${formatHour(result.waterAfter)}</b> — once it's cooled off</span>
     </div>`;
   }
-  plantCareBody.innerHTML = html;
+  plantCareRule.innerHTML = html;
 }
+
+// --- AI plant-photo analysis ---
+//
+// Identifies the actual plant from a photo and asks the model to tailor
+// advice using this spot's REAL already-computed sun/heat data (sent as
+// context, never invented server-side). Downscales the photo client-side
+// before sending so the request stays small.
+
+function downscaleImage(img, maxDim) {
+  const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  c.getContext("2d").drawImage(img, 0, 0, w, h);
+  return c.toDataURL("image/jpeg", 0.85);
+}
+
+async function handlePlantPhoto(img) {
+  const dataUrl = downscaleImage(img, 768);
+  plantAnalysisResult.innerHTML = `<p class="plant-analysis-status">Identifying your plant…</p>`;
+
+  const hotHours = currentRows.filter((r) => r.status === "sun" && r.risk && (r.risk.heat === "high" || r.risk.heat === "elevated")).length;
+  const severity = PlantCare.assess(currentRows).severity;
+
+  try {
+    const res = await fetch("/api/plant-analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        imageDataUrl: dataUrl,
+        context: { sunHours: currentSunHours, hotHours, severity },
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      plantAnalysisResult.innerHTML = `<p class="plant-analysis-status error">Couldn't analyze that photo (${data.error || res.status}).</p>`;
+      return;
+    }
+    renderPlantAnalysis(data.analysis, data.mode);
+  } catch (err) {
+    plantAnalysisResult.innerHTML = `<p class="plant-analysis-status error">Couldn't reach the plant analysis right now.</p>`;
+  }
+}
+
+function renderPlantAnalysis(a, mode) {
+  if (!a) {
+    plantAnalysisResult.innerHTML = `<p class="plant-analysis-status error">No analysis came back — try another photo.</p>`;
+    return;
+  }
+  const tips = Array.isArray(a.tips) && a.tips.length ? `<ul class="plant-analysis-tips">${a.tips.map((t) => `<li>${t}</li>`).join("")}</ul>` : "";
+  const demoNote = mode === "demo" ? `<p class="plant-analysis-status">Demo mode — connect a live AI key for real identification.</p>` : "";
+  plantAnalysisResult.innerHTML = `
+    <div class="plant-analysis-card">
+      <div class="plant-analysis-head">
+        <span class="plant-analysis-species">${a.species || "Unknown"}</span>
+        <span class="plant-analysis-confidence ${a.confidence || "low"}">${a.confidence || "low"} confidence</span>
+      </div>
+      ${a.sunNeeds ? `<p><b>Sun:</b> ${a.sunNeeds}</p>` : ""}
+      ${a.waterNeeds ? `<p><b>Water:</b> ${a.waterNeeds}</p>` : ""}
+      ${a.heatTolerance ? `<p><b>At this spot today:</b> ${a.heatTolerance}</p>` : ""}
+      ${tips}
+      ${demoNote}
+    </div>`;
+}
+
+plantTakePhotoBtn.addEventListener("click", () => openCameraModal("plant", plantCameraInput));
+plantUploadPhotoBtn.addEventListener("click", () => plantFileInput.click());
+
+function loadPlantPhotoFrom(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => handlePlantPhoto(img);
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+plantCameraInput.addEventListener("change", () => loadPlantPhotoFrom(plantCameraInput));
+plantFileInput.addEventListener("change", () => loadPlantPhotoFrom(plantFileInput));
 
 // --- Community layer (Phase 6, demo/stretch) ---
 //

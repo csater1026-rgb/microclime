@@ -278,7 +278,20 @@
           <span class="plant-care-title">Plant &amp; grass burn risk</span>
           <span class="plant-care-badge" id="plant-care-badge"></span>
         </summary>
-        <div class="plant-care-body" id="plant-care-body"></div>
+        <div class="plant-care-body">
+          <div id="plant-care-rule"></div>
+
+          <div class="plant-photo-section">
+            <p class="plant-photo-lede">Want exact advice for your actual plant? Add a photo — AI will identify it and tailor this using the real sun and heat data above, for that specific species.</p>
+            <div class="photo-source-row">
+              <button class="btn-secondary" id="plant-take-photo-btn" type="button">Take a photo</button>
+              <button class="btn-secondary" id="plant-upload-photo-btn" type="button">Upload a file</button>
+            </div>
+            <input type="file" id="plant-camera-input" accept="image/*" capture="environment" hidden />
+            <input type="file" id="plant-file-input" accept="image/*" hidden />
+            <div id="plant-analysis-result"></div>
+          </div>
+        </div>
       </details>
 
       <p class="panel-sub">Hour-by-hour detail — hover any column heading for what it means.</p>
