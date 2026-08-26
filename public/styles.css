@@ -657,6 +657,19 @@ input[type="file"] {
 
 .how-it-works-btn { font-size: 13px; padding: 8px 14px; }
 
+.camera-preview-wrap {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #000;
+}
+#camera-video {
+  display: block;
+  width: 100%;
+  max-height: 60vh;
+}
+.camera-actions { justify-content: space-between; }
+
 .site-footer {
   max-width: 760px;
   margin: 48px auto 0;

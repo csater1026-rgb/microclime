@@ -27,6 +27,23 @@
     <button class="btn-secondary how-it-works-btn" id="how-it-works-btn" type="button">How it works</button>
   </header>
 
+  <div class="modal-overlay" id="camera-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="camera-heading">
+      <div class="modal-head">
+        <h2 id="camera-heading">Take a photo</h2>
+        <button class="icon-close" id="camera-close" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-sub" id="camera-status">Starting your camera…</p>
+      <div class="camera-preview-wrap">
+        <video id="camera-video" autoplay playsinline muted></video>
+      </div>
+      <div class="modal-actions camera-actions">
+        <button class="btn-secondary" id="camera-cancel-btn" type="button">Cancel</button>
+        <button class="btn-primary" id="camera-capture-btn" type="button" hidden>Capture</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="intro-modal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="intro-heading">
       <div class="modal-head">

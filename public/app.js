@@ -62,6 +62,12 @@ const takePhotoBtn = el("take-photo-btn");
 const uploadPhotoBtn = el("upload-photo-btn");
 const cameraInput = el("camera-input");
 const fileInput = el("file-input");
+const cameraModal = el("camera-modal");
+const cameraVideo = el("camera-video");
+const cameraStatus = el("camera-status");
+const cameraClose = el("camera-close");
+const cameraCancelBtn = el("camera-cancel-btn");
+const cameraCaptureBtn = el("camera-capture-btn");
 const canvasWrap = el("canvas-wrap");
 const canvas = el("trace-canvas");
 const ctx = canvas.getContext("2d");
@@ -160,10 +166,80 @@ useLocationBtn.addEventListener("click", () => {
 
 // --- Photo + horizon tracing ---
 
-takePhotoBtn.addEventListener("click", () => cameraInput.click());
+// "Take a photo" opens a real in-browser camera (works on laptops, where a
+// file input's `capture` attribute is only a mobile hint and desktop
+// browsers just show the ordinary file picker instead of the webcam). Falls
+// back to the file-input capture flow if getUserMedia isn't available.
+let cameraStream = null;
+
+async function openCameraModal() {
+  cameraModal.hidden = false;
+  cameraCaptureBtn.hidden = true;
+  cameraStatus.textContent = "Starting your camera…";
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false,
+    });
+    cameraVideo.srcObject = cameraStream;
+    cameraStatus.textContent = "Hold your phone or laptop level, point it at the horizon, then capture.";
+    cameraCaptureBtn.hidden = false;
+  } catch (err) {
+    cameraModal.hidden = true;
+    cameraInput.click(); // fall back to the OS-level capture/upload picker
+  }
+}
+
+function closeCameraModal() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach((t) => t.stop());
+    cameraStream = null;
+  }
+  cameraVideo.srcObject = null;
+  cameraModal.hidden = true;
+}
+
+function captureFromVideo() {
+  const w = cameraVideo.videoWidth;
+  const h = cameraVideo.videoHeight;
+  if (!w || !h) return;
+  const shot = document.createElement("canvas");
+  shot.width = w;
+  shot.height = h;
+  shot.getContext("2d").drawImage(cameraVideo, 0, 0, w, h);
+  const img = new Image();
+  img.onload = () => {
+    closeCameraModal();
+    applyPhoto(img);
+  };
+  img.src = shot.toDataURL("image/jpeg", 0.92);
+}
+
+takePhotoBtn.addEventListener("click", openCameraModal);
+cameraClose.addEventListener("click", closeCameraModal);
+cameraCancelBtn.addEventListener("click", closeCameraModal);
+cameraCaptureBtn.addEventListener("click", captureFromVideo);
+
 uploadPhotoBtn.addEventListener("click", () => fileInput.click());
 cameraInput.addEventListener("change", () => loadPhotoFrom(cameraInput));
 fileInput.addEventListener("change", () => loadPhotoFrom(fileInput));
+
+function applyPhoto(img) {
+  photoImg = img;
+  trace = new Array(BUCKETS).fill(null);
+  const wrapWidth = canvasWrap.clientWidth || 640;
+  canvas.width = wrapWidth;
+  canvas.height = Math.round((wrapWidth * img.height) / img.width);
+  canvasWrap.hidden = false;
+  headingRow.hidden = false;
+  whatifRow.hidden = false;
+  saveSpotRow.hidden = false;
+  baseline = null;
+  resetBaselineBtn.hidden = true;
+  saveBaselineBtn.textContent = 'Save as "how it is now"';
+  drawCanvas();
+  recompute();
+}
 
 function loadPhotoFrom(input) {
   const file = input.files?.[0];
@@ -171,22 +247,7 @@ function loadPhotoFrom(input) {
   const reader = new FileReader();
   reader.onload = () => {
     const img = new Image();
-    img.onload = () => {
-      photoImg = img;
-      trace = new Array(BUCKETS).fill(null);
-      const wrapWidth = canvasWrap.clientWidth || 640;
-      canvas.width = wrapWidth;
-      canvas.height = Math.round((wrapWidth * img.height) / img.width);
-      canvasWrap.hidden = false;
-      headingRow.hidden = false;
-      whatifRow.hidden = false;
-      saveSpotRow.hidden = false;
-      baseline = null;
-      resetBaselineBtn.hidden = true;
-      saveBaselineBtn.textContent = 'Save as "how it is now"';
-      drawCanvas();
-      recompute();
-    };
+    img.onload = () => applyPhoto(img);
     img.src = reader.result;
   };
   reader.readAsDataURL(file);
