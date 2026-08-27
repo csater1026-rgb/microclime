@@ -505,7 +505,7 @@ function drawCanvas() {
   } else {
     // No photo loaded (e.g. a saved spot reopened without its original
     // photo) — still show the traced horizon line on a neutral background.
-    ctx.fillStyle = "#0f1620";
+    ctx.fillStyle = "#fbf1e6";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
@@ -513,7 +513,7 @@ function drawCanvas() {
   if (!dense) return;
 
   ctx.beginPath();
-  ctx.strokeStyle = "#f4a940";
+  ctx.strokeStyle = "#e8794f";
   ctx.lineWidth = 3;
   for (let i = 0; i < BUCKETS; i++) {
     const x = ((i + 0.5) / BUCKETS) * canvas.width;
@@ -524,7 +524,7 @@ function drawCanvas() {
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.strokeStyle = "rgba(232,237,243,0.35)";
+  ctx.strokeStyle = "rgba(43,31,34,0.3)";
   ctx.setLineDash([4, 4]);
   ctx.moveTo(0, canvas.height / 2);
   ctx.lineTo(canvas.width, canvas.height / 2);
