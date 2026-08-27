@@ -215,11 +215,10 @@
         Take a photo from the exact spot, holding your phone level and
         pointed at one direction. Then trace the skyline — where trees,
         roofs, or fences block the sky. Click along the photo to mark the
-        blocking height at each point. You don't need to set your location
-        above first — taking a live photo grabs your device's location
-        automatically, and uploading an existing photo reads its location
-        from the photo itself if it has any. If neither works, just enter
-        it manually in step 1.
+        blocking height at each point. Enter your location above, OR just
+        take or upload a photo below — a live photo grabs your device's
+        location automatically, and an uploaded photo reads its location
+        from the photo itself if it has any.
       </p>
 
       <div class="photo-source-row">
@@ -286,9 +285,10 @@
           <div id="plant-care-rule"></div>
 
           <div class="plant-photo-section">
-            <p class="plant-photo-lede">Want exact advice for your actual plant? Add a photo — AI will identify it and tailor this using the real sun and heat data above, for that specific species.</p>
+            <p class="plant-photo-lede">Want exact advice for what's actually growing here? AI will identify the plants, grass, or trees and tailor this using the real sun and heat data above.</p>
             <div class="photo-source-row">
-              <button class="btn-secondary" id="plant-take-photo-btn" type="button">Take a photo</button>
+              <button class="btn-secondary" id="plant-use-horizon-btn" type="button">Use my horizon photo</button>
+              <button class="btn-secondary" id="plant-take-photo-btn" type="button">Take a new photo</button>
               <button class="btn-secondary" id="plant-upload-photo-btn" type="button">Upload a file</button>
             </div>
             <input type="file" id="plant-camera-input" accept="image/*" capture="environment" hidden />

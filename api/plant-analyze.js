@@ -14,27 +14,35 @@
 const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 const DEFAULT_MODEL = "gemini-3.6-flash";
 
-const SYSTEM_PROMPT = `You identify plants from a photo and give specific,
-practical watering and sun-exposure advice for that exact species.
+const SYSTEM_PROMPT = `You identify plants, grass, or trees from a photo and
+give specific, practical watering and sun-exposure advice.
 
-You will be given the REAL, already-computed sun and heat data for the
-plant's actual location — sun-hours today, how many of those hours are
-hot/high-heat, and the current burn-risk severity. Never invent or
-contradict these numbers. Your job is to identify the plant as specifically
-as you reasonably can from the photo, then translate general species care
-knowledge into concrete advice given THAT plant's real sun exposure today.
+The photo might be a close-up of one plant, or it might be a wide shot of a
+yard or horizon showing grass, trees, shrubs, or several kinds of greenery
+at once — treat both as valid. If several kinds of plants/grass/trees are
+visible, identify each briefly and give combined, practical advice covering
+all of them rather than forcing a single species. If nothing green is
+clearly visible, say so plainly instead of guessing.
+
+You will be given the REAL, already-computed sun and heat data for this
+exact location — sun-hours today, how many of those hours are hot/high-heat,
+and the current burn-risk severity. Never invent or contradict these
+numbers. Translate general plant-care knowledge into concrete advice given
+this location's real sun exposure today.
 
 Respond with ONLY a JSON object, no markdown fences, no extra text, in
 exactly this shape:
 {
-  "species": "common name (best guess)",
+  "species": "what you see — one species, or a short list like \\"lawn grass, a young maple, a rose bush\\"",
   "confidence": "high" | "medium" | "low",
-  "sunNeeds": "one sentence on this species' ideal sun exposure",
+  "sunNeeds": "one sentence on the ideal sun exposure for what's in the photo",
   "waterNeeds": "one sentence, specific — e.g. how often and how much",
-  "heatTolerance": "one sentence on how well this species handles today's actual heat/sun exposure at this spot",
+  "heatTolerance": "one sentence on how well what's in the photo handles today's actual heat/sun exposure at this spot",
   "tips": ["short actionable tip", "short actionable tip"]
 }
-If the photo doesn't clearly show a plant, set species to "Not clearly a plant" and confidence to "low", and give general tips instead.`;
+If the photo doesn't clearly show any plants, grass, or trees, set species
+to "Nothing green clearly visible" and confidence to "low", and give general
+tips instead.`;
 
 function demoAnalysis(context) {
   return {

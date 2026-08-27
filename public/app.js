@@ -82,6 +82,7 @@ const riskSummary = el("risk-summary");
 const plantCare = el("plant-care");
 const plantCareBadge = el("plant-care-badge");
 const plantCareRule = el("plant-care-rule");
+const plantUseHorizonBtn = el("plant-use-horizon-btn");
 const plantTakePhotoBtn = el("plant-take-photo-btn");
 const plantUploadPhotoBtn = el("plant-upload-photo-btn");
 const plantCameraInput = el("plant-camera-input");
@@ -842,6 +843,13 @@ function renderPlantAnalysis(a, mode) {
     </div>`;
 }
 
+plantUseHorizonBtn.addEventListener("click", () => {
+  if (!photoImg) {
+    plantAnalysisResult.innerHTML = `<p class="plant-analysis-status error">Take or upload a horizon photo in step 2 first.</p>`;
+    return;
+  }
+  handlePlantPhoto(photoImg);
+});
 plantTakePhotoBtn.addEventListener("click", () => openCameraModal("plant", plantCameraInput));
 plantUploadPhotoBtn.addEventListener("click", () => plantFileInput.click());
 
