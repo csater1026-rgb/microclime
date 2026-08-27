@@ -230,8 +230,15 @@ function captureFromVideo() {
   img.onload = () => {
     const target = cameraTarget;
     closeCameraModal();
-    if (target === "plant") handlePlantPhoto(img);
-    else applyPhoto(img);
+    if (target === "plant") {
+      handlePlantPhoto(img);
+    } else {
+      applyPhoto(img);
+      tryLocationFromDevice(
+        "Location set automatically from your device.",
+        "Couldn't detect your location automatically — enter it above."
+      );
+    }
   };
   img.src = shot.toDataURL("image/jpeg", 0.92);
 }
@@ -262,9 +269,46 @@ function applyPhoto(img) {
   recompute();
 }
 
+// --- Auto-location: try the photo first, then the device, before asking ---
+
+function setDetectedLocation(lat, lon, message) {
+  state.lat = Math.round(lat * 10000) / 10000;
+  state.lon = Math.round(lon * 10000) / 10000;
+  initInputs();
+  saveState();
+  locationStatus.textContent = message;
+  recompute();
+}
+
+function tryLocationFromDevice(successMessage, failMessage) {
+  if (!navigator.geolocation) {
+    locationStatus.textContent = failMessage;
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => setDetectedLocation(pos.coords.latitude, pos.coords.longitude, successMessage),
+    () => { locationStatus.textContent = failMessage; }
+  );
+}
+
+async function tryLocationFromFile(file) {
+  try {
+    const buf = await file.arrayBuffer();
+    const gps = Exif.readGPS(buf);
+    if (gps) {
+      setDetectedLocation(gps.lat, gps.lon, "Location detected from your photo.");
+      return;
+    }
+  } catch {
+    // fall through to the "couldn't find it" message below
+  }
+  locationStatus.textContent = "Couldn't find location data in that photo — enter your location above.";
+}
+
 function loadPhotoFrom(input) {
   const file = input.files?.[0];
   if (!file) return;
+  tryLocationFromFile(file);
   const reader = new FileReader();
   reader.onload = () => {
     const img = new Image();

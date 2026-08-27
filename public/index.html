@@ -215,7 +215,11 @@
         Take a photo from the exact spot, holding your phone level and
         pointed at one direction. Then trace the skyline — where trees,
         roofs, or fences block the sky. Click along the photo to mark the
-        blocking height at each point.
+        blocking height at each point. You don't need to set your location
+        above first — taking a live photo grabs your device's location
+        automatically, and uploading an existing photo reads its location
+        from the photo itself if it has any. If neither works, just enter
+        it manually in step 1.
       </p>
 
       <div class="photo-source-row">
@@ -365,6 +369,7 @@
     Built for NextStep Hacks 2026 (theme: Earth Forward) by Christian Saterfield.
   </footer>
 
+  <script src="./exif.js"></script>
   <script src="./solar.js"></script>
   <script src="./weather.js"></script>
   <script src="./risk.js"></script>
