@@ -44,6 +44,11 @@ across your whole zip code.
    single weather station. Building the real multi-user version was out of
    scope for a solo build on this timeline, so this is shown as a working
    demo with seeded data alongside your real computed numbers.
+7. **AI plant identification, tied to the real numbers.** Add a photo of the
+   actual plant and the model identifies it and gives species-specific
+   watering and sun-exposure advice — built directly on top of this spot's
+   real, already-computed sun-hours and heat-risk data, not a generic
+   database lookup.
 
 No login. No accounts. Everything lives in your browser.
 
@@ -59,6 +64,22 @@ correction loop, and a what-if simulator for testing planting decisions
 before committing to them. That combination doesn't exist elsewhere, and the
 AI's role is a supporting one — explaining results in plain language — not
 the core mechanic.
+
+There are also plenty of apps that point a camera at a plant and give an AI
+diagnosis of how much attention it currently needs — that category is
+genuinely crowded. What none of them do is narrow all the way down to the
+plant's *exact physical position* and estimate how much sun that specific
+spot will actually get, hour by hour, on any given day. A generic
+"water twice a week" diagnosis doesn't know that this particular plant sits
+in a cold trap that frosts before the forecast does, or gets four hours of
+scorching, unblocked afternoon sun that a plant ten feet away never sees.
+Microclime's whole engine exists to answer that one question — real
+sun-hours for one real spot — and everything else (frost risk, heat-stress
+watering windows, the AI plant identification, calibration over time) is
+built on top of that real, location-specific number. The goal isn't a
+one-time diagnosis; it's sustained outdoor plant, grass, and tree health —
+watered enough, not sunburned, not caught by frost — based on what that
+exact spot's sun and weather are actually doing, not a generic care sheet.
 
 ## How it stacks up against the judging criteria
 
@@ -88,9 +109,14 @@ the browser (`localStorage`) only; no accounts, no server-side database.
 ## AI use disclosure
 
 Claude Code (Anthropic) was used as a coding assistant throughout the build.
-No AI model powers the app's core logic — the sun-hours, frost/heat risk,
-calibration, and zone classification are all deterministic calculations we
-wrote ourselves.
+The app's core logic — sun-hours, frost/heat risk, calibration, and zone
+classification — is entirely deterministic code we wrote ourselves; no AI
+model touches it. Google Gemini (via its OpenAI-compatible API) powers two
+specific, supporting features on top of that real data: identifying a
+plant from a photo and tailoring advice to it, and generating a
+plain-English summary of the already-computed results on request. Both are
+optional, both are clearly labeled, and both are fed the real numbers as
+context rather than being asked to invent them.
 
 ## Try it
 
