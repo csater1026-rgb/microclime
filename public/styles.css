@@ -502,6 +502,30 @@ input[type="file"] {
 .plant-analysis-tips { margin: 8px 0 0; padding-left: 18px; }
 .plant-analysis-tips li { margin-bottom: 4px; }
 
+.summarize-row { margin: 4px 0 12px; }
+
+.ai-summary {
+  margin: 0 0 18px;
+  background: linear-gradient(160deg, rgba(255,138,92,0.10), rgba(155,127,212,0.08));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 14.5px;
+  color: var(--text);
+  line-height: 1.6;
+}
+.ai-summary .ai-summary-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-soft);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.ai-summary.loading { color: var(--text-faint); font-style: italic; }
+.ai-summary.error { color: var(--danger); }
+
 .weather-status {
   font-size: 13px;
   color: var(--text-faint);

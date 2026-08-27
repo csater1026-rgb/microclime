@@ -87,6 +87,8 @@ const plantUploadPhotoBtn = el("plant-upload-photo-btn");
 const plantCameraInput = el("plant-camera-input");
 const plantFileInput = el("plant-file-input");
 const plantAnalysisResult = el("plant-analysis-result");
+const summarizeBtn = el("summarize-btn");
+const aiSummary = el("ai-summary");
 const hourStrip = el("hour-strip");
 const hourTableBody = el("hour-table-body");
 const calibratePanel = el("calibrate-panel");
@@ -115,6 +117,8 @@ const introStartBtn = el("intro-start-btn");
 
 let currentRows = [];
 let currentSunHours = 0;
+let currentFrostHours = 0;
+let currentHeatHours = 0;
 
 // Phase 4 — what-if simulation. The baseline is a session-only snapshot of
 // the horizon "as it really is right now" (trace + heading + fov). Once
@@ -675,6 +679,8 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
     const byHour = new Map(hourly.map((w) => [w.hour, w]));
     const biasC = computeBiasC();
     const { frostHours, heatHours } = applyRisk(rows, sunHours, byHour, biasC);
+    currentFrostHours = frostHours;
+    currentHeatHours = heatHours;
 
     let baselineFrostHours = null;
     if (baselineResult) {
@@ -808,6 +814,46 @@ function loadPlantPhotoFrom(input) {
 }
 plantCameraInput.addEventListener("change", () => loadPlantPhotoFrom(plantCameraInput));
 plantFileInput.addEventListener("change", () => loadPlantPhotoFrom(plantFileInput));
+
+// --- AI plain-English summary ---
+
+summarizeBtn.addEventListener("click", async () => {
+  aiSummary.hidden = false;
+  aiSummary.className = "ai-summary loading";
+  aiSummary.textContent = "Putting this into plain English…";
+
+  const plantResult = PlantCare.assess(currentRows);
+  const plantSeverity = plantResult.severity;
+
+  try {
+    const res = await fetch("/api/summarize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        context: {
+          sunHours: currentSunHours,
+          frostHours: currentFrostHours,
+          heatHours: currentHeatHours,
+          plantSeverity,
+          waterBefore: plantResult.waterBefore,
+          waterAfter: plantResult.waterAfter,
+        },
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      aiSummary.className = "ai-summary error";
+      aiSummary.textContent = `Couldn't generate a summary (${data.error || res.status}).`;
+      return;
+    }
+    aiSummary.className = "ai-summary";
+    const label = data.mode === "demo" ? "Summary (demo mode)" : "Summary";
+    aiSummary.innerHTML = `<span class="ai-summary-label">${label}</span>${data.summary}`;
+  } catch (err) {
+    aiSummary.className = "ai-summary error";
+    aiSummary.textContent = "Couldn't reach the summary service right now.";
+  }
+});
 
 // --- Community layer (Phase 6, demo/stretch) ---
 //
