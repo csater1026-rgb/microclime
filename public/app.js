@@ -763,6 +763,24 @@ function formatHour(h) {
   return `${display}:00 ${period}`;
 }
 
+// Turns a list of hour numbers (0-23) into a human range like "12:00 PM–4:00 PM",
+// so the AI can say *when* something happens instead of just how many hours.
+// Assumes a single contiguous block, which frost/heat windows normally are.
+function formatHourRange(hours) {
+  if (!hours.length) return null;
+  const min = Math.min(...hours);
+  const max = Math.max(...hours);
+  return `${formatHour(min)}–${formatHour((max + 1) % 24)}`;
+}
+
+function hotSunHours(rows) {
+  return rows.filter((r) => r.status === "sun" && r.risk && (r.risk.heat === "high" || r.risk.heat === "elevated")).map((r) => r.h);
+}
+
+function frostRiskHours(rows) {
+  return rows.filter((r) => r.risk && r.risk.frost === "frost").map((r) => r.h);
+}
+
 function renderPlantCare(rows) {
   const result = PlantCare.assess(rows);
   plantCare.hidden = false;
@@ -801,7 +819,8 @@ async function handlePlantPhoto(img) {
   const dataUrl = downscaleImage(img, 768);
   plantAnalysisResult.innerHTML = `<p class="plant-analysis-status">Identifying your plant…</p>`;
 
-  const hotHours = currentRows.filter((r) => r.status === "sun" && r.risk && (r.risk.heat === "high" || r.risk.heat === "elevated")).length;
+  const hotHourList = hotSunHours(currentRows);
+  const frostHourList = frostRiskHours(currentRows);
   const severity = PlantCare.assess(currentRows).severity;
 
   try {
@@ -810,7 +829,14 @@ async function handlePlantPhoto(img) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         imageDataUrl: dataUrl,
-        context: { sunHours: currentSunHours, hotHours, severity },
+        context: {
+          sunHours: currentSunHours,
+          hotHours: hotHourList.length,
+          hotHoursRange: formatHourRange(hotHourList),
+          frostHours: frostHourList.length,
+          frostHoursRange: formatHourRange(frostHourList),
+          severity,
+        },
       }),
     });
     const data = await res.json();
@@ -882,6 +908,8 @@ async function runSummarize() {
 
   const plantResult = PlantCare.assess(currentRows);
   const plantSeverity = plantResult.severity;
+  const hotHourList = hotSunHours(currentRows);
+  const frostHourList = frostRiskHours(currentRows);
 
   try {
     const res = await fetch("/api/summarize", {
@@ -891,7 +919,9 @@ async function runSummarize() {
         context: {
           sunHours: currentSunHours,
           frostHours: currentFrostHours,
+          frostHoursRange: formatHourRange(frostHourList),
           heatHours: currentHeatHours,
+          heatHoursRange: formatHourRange(hotHourList),
           plantSeverity,
           waterBefore: plantResult.waterBefore,
           waterAfter: plantResult.waterAfter,

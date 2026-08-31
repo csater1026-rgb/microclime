@@ -12,16 +12,26 @@ const DEFAULT_MODEL = "gemini-3.6-flash";
 const SYSTEM_PROMPT = `You explain a yard-monitoring app's results in plain
 English for someone who isn't technical. You will be given REAL,
 already-computed numbers for one exact spot — never invent, round away, or
-contradict them. Write 3-4 short sentences: what's actually going on at
-this spot today, and the one or two things worth doing about it (watering
-timing, frost/heat concern, etc.). No jargon like "azimuth" or "elevation."
-No bullet points, no headers — just plain sentences a person would actually
-say to a friend. Do not repeat every number robotically; pick what matters.`;
+contradict them. If a clock-time range is given for frost or heat hours
+(e.g. "1AM-5AM"), say when it happens, not just how many hours — "colder
+overnight, especially 1AM to 5AM" beats "5 hours of frost risk." Write 3-4
+short sentences: what's actually going on at this spot today, and the one
+or two things worth doing about it (watering timing, frost/heat concern,
+etc.). No jargon like "azimuth" or "elevation." No bullet points, no
+headers — just plain sentences a person would actually say to a friend. Do
+not repeat every number robotically; pick what matters.`;
 
 function demoSummary(c) {
   const bits = [];
   bits.push(`This spot gets about ${c.sunHours ?? "some"} hours of direct sun today.`);
-  if (c.frostHours) bits.push(`It'll likely see frost for around ${c.frostHours} hour${c.frostHours === 1 ? "" : "s"} overnight, colder than the general forecast.`);
+  if (c.frostHours) {
+    const when = c.frostHoursRange ? `, especially ${c.frostHoursRange}` : "";
+    bits.push(`It'll likely see frost for around ${c.frostHours} hour${c.frostHours === 1 ? "" : "s"} overnight${when}, colder than the general forecast.`);
+  }
+  if (c.heatHours) {
+    const when = c.heatHoursRange ? ` (${c.heatHoursRange})` : "";
+    bits.push(`Expect ${c.heatHours} hour${c.heatHours === 1 ? "" : "s"} of real heat stress in direct sun${when}.`);
+  }
   if (c.plantSeverity && c.plantSeverity !== "none") bits.push(`Sun/heat stress on plants here is rated "${c.plantSeverity}" today.`);
   if (typeof c.waterBefore === "number") bits.push(`Consider watering before the heat builds up and again once it eases off.`);
   bits.push("(Demo mode — connect a live AI key for a real generated summary.)");
@@ -50,8 +60,8 @@ export default async function handler(req, res) {
 
   const contextText = `Real data for this spot today:
 - Sun-hours: ${context.sunHours ?? "unknown"}
-- Frost-risk hours tonight: ${context.frostHours ?? 0}
-- Heat-stress hours: ${context.heatHours ?? 0}
+- Frost-risk hours tonight: ${context.frostHours ?? 0}${context.frostHoursRange ? ` (clock time: ${context.frostHoursRange})` : ""}
+- Heat-stress hours: ${context.heatHours ?? 0}${context.heatHoursRange ? ` (clock time: ${context.heatHoursRange})` : ""}
 - Plant/grass burn-risk severity: ${context.plantSeverity ?? "unknown"}
 - Suggested watering window: ${typeof context.waterBefore === "number" ? `before ${context.waterBefore}:00 and after ${context.waterAfter}:00` : "none needed"}`;
 

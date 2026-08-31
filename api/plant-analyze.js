@@ -25,10 +25,12 @@ all of them rather than forcing a single species. If nothing green is
 clearly visible, say so plainly instead of guessing.
 
 You will be given the REAL, already-computed sun and heat data for this
-exact location — sun-hours today, how many of those hours are hot/high-heat,
-and the current burn-risk severity. Never invent or contradict these
-numbers. Translate general plant-care knowledge into concrete advice given
-this location's real sun exposure today.
+exact location — sun-hours today, how many of those hours are hot/high-heat
+(and the actual clock-time range those hours fall in, if any), how many
+hours carry frost risk tonight (and their clock-time range, if any), and the
+current burn-risk severity. Never invent or contradict these numbers —
+if a time range is given, mention it naturally (e.g. "especially rough
+between 12PM and 4PM") instead of only giving a count.
 
 Respond with ONLY a JSON object, no markdown fences, no extra text, in
 exactly this shape:
@@ -45,11 +47,13 @@ to "Nothing green clearly visible" and confidence to "low", and give general
 tips instead.`;
 
 function demoAnalysis(context) {
+  const hotRange = context.hotHoursRange ? ` (roughly ${context.hotHoursRange})` : "";
+  const frostRange = context.frostHoursRange ? ` (roughly ${context.frostHoursRange})` : "";
   return {
     species: "Demo mode — plant not identified",
     confidence: "low",
     sunNeeds: "Connect a live AI key to identify your actual plant from the photo.",
-    waterNeeds: `Based on your spot's real data: water before the hot-sun window ends around midday if you're seeing ${context.hotHours || 0} hot-sun hour(s) today.`,
+    waterNeeds: `Based on your spot's real data: you're seeing ${context.hotHours || 0} hot-sun hour(s) today${hotRange} and ${context.frostHours || 0} frost-risk hour(s) tonight${frostRange}.`,
     heatTolerance: "This is a scripted placeholder — the live version reads your actual photo.",
     tips: ["Add a live API key to get species-specific identification and advice."],
   };
@@ -82,7 +86,10 @@ export default async function handler(req, res) {
 
   const contextLine =
     `Real data for this spot today: ${context.sunHours ?? "unknown"} total sun-hours, ` +
-    `${context.hotHours ?? 0} of those hours are hot/high-heat direct sun, ` +
+    `${context.hotHours ?? 0} of those hours are hot/high-heat direct sun` +
+    `${context.hotHoursRange ? ` (${context.hotHoursRange})` : ""}, ` +
+    `${context.frostHours ?? 0} hours carry frost risk tonight` +
+    `${context.frostHoursRange ? ` (${context.frostHoursRange})` : ""}, ` +
     `current burn-risk severity is "${context.severity ?? "unknown"}".`;
 
   try {
