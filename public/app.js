@@ -89,6 +89,7 @@ const plantCameraInput = el("plant-camera-input");
 const plantFileInput = el("plant-file-input");
 const plantAnalysisResult = el("plant-analysis-result");
 const summarizeBtn = el("summarize-btn");
+const summarizeRow = el("summarize-row");
 const aiSummary = el("ai-summary");
 const hourStrip = el("hour-strip");
 const hourTableBody = el("hour-table-body");
@@ -744,6 +745,7 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
     renderWhatif(sunHours, frostHours, baselineResult ? baselineResult.sunHours : null, baselineFrostHours);
     renderCommunity(frostHours);
     renderPlantCare(rows);
+    scheduleSummarize();
   } catch (err) {
     if (token !== recomputeToken) return;
     weatherStatus.textContent = `Forecast unavailable for this date (${err.message}). Live forecasts only cover the near-term window — sun-hours above are still accurate.`;
@@ -868,8 +870,12 @@ plantCameraInput.addEventListener("change", () => loadPlantPhotoFrom(plantCamera
 plantFileInput.addEventListener("change", () => loadPlantPhotoFrom(plantFileInput));
 
 // --- AI plain-English summary ---
+//
+// Runs automatically once results load, so the plain-language takeaway is
+// the first thing shown — not something a user has to know to click for.
+// The button becomes a "Regenerate" option once a summary has been shown.
 
-summarizeBtn.addEventListener("click", async () => {
+async function runSummarize() {
   aiSummary.hidden = false;
   aiSummary.className = "ai-summary loading";
   aiSummary.textContent = "Putting this into plain English…";
@@ -904,8 +910,21 @@ summarizeBtn.addEventListener("click", async () => {
   } catch (err) {
     aiSummary.className = "ai-summary error";
     aiSummary.textContent = "Couldn't reach the summary service right now.";
+  } finally {
+    summarizeRow.hidden = false;
   }
-});
+}
+
+summarizeBtn.addEventListener("click", runSummarize);
+
+// Debounced so rapid changes (e.g. dragging the horizon trace, which fires
+// a recompute on every pointerup) don't fire an AI call per micro-edit —
+// only once things settle for a moment.
+let summarizeDebounceTimer = null;
+function scheduleSummarize() {
+  clearTimeout(summarizeDebounceTimer);
+  summarizeDebounceTimer = setTimeout(runSummarize, 1200);
+}
 
 // --- Community layer (Phase 6, demo/stretch) ---
 //

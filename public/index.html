@@ -264,7 +264,7 @@
 
     <section class="panel" id="results-panel" hidden>
       <h2 class="panel-title"><span class="step-badge">3</span>Your spot's real sun-hours</h2>
-      <p class="results-summary" id="results-summary"></p>
+
       <div class="hour-strip" id="hour-strip" aria-label="Sun exposure by hour"></div>
       <div class="hour-legend">
         <span class="hour-legend-item"><span class="hour-legend-swatch sun"></span>Direct sun</span>
@@ -274,11 +274,18 @@
       </div>
 
       <p class="weather-status" id="weather-status"></p>
+
+      <div class="ai-summary" id="ai-summary" hidden></div>
+      <div class="summarize-row" id="summarize-row" hidden>
+        <button class="btn-secondary" id="summarize-btn" type="button">Regenerate summary</button>
+      </div>
+
+      <p class="results-summary" id="results-summary"></p>
       <p class="results-summary" id="risk-summary" hidden></p>
 
       <details class="plant-care" id="plant-care" hidden>
         <summary>
-          <span class="plant-care-title">Plant &amp; grass burn risk</span>
+          <span class="plant-care-title">Plant &amp; grass burn risk + watering advice</span>
           <span class="plant-care-badge" id="plant-care-badge"></span>
         </summary>
         <div class="plant-care-body">
@@ -298,27 +305,25 @@
         </div>
       </details>
 
-      <div class="summarize-row">
-        <button class="btn-secondary" id="summarize-btn" type="button">Summarize this for me</button>
-      </div>
-      <div class="ai-summary" id="ai-summary" hidden></div>
-
-      <p class="panel-sub">Hour-by-hour detail — hover any column heading for what it means.</p>
-      <div class="table-scroll">
-        <table class="hour-table" id="hour-table">
-          <thead>
-            <tr>
-              <th title="The time of day">Hour</th>
-              <th title="How high the sun is in the sky, in degrees. 0° = right at the horizon, 90° = straight overhead.">Sun height</th>
-              <th title="Which direction the sun is in, like a compass reading. 0° = North, 90° = East, 180° = South, 270° = West.">Sun direction</th>
-              <th title="Whether this exact spot is in direct sun or blocked by whatever you traced in the photo">Status</th>
-              <th title="This app's estimate of the temperature at this exact spot, adjusted from the general forecast">Est. temp</th>
-              <th title="Whether this hour is a concern for frost or heat stress at this spot">Risk</th>
-            </tr>
-          </thead>
-          <tbody id="hour-table-body"></tbody>
-        </table>
-      </div>
+      <details class="hourly-detail">
+        <summary>See the full hourly breakdown</summary>
+        <p class="panel-sub">Hover any column heading for what it means.</p>
+        <div class="table-scroll">
+          <table class="hour-table" id="hour-table">
+            <thead>
+              <tr>
+                <th title="The time of day">Hour</th>
+                <th title="How high the sun is in the sky, in degrees. 0° = right at the horizon, 90° = straight overhead.">Sun height</th>
+                <th title="Which direction the sun is in, like a compass reading. 0° = North, 90° = East, 180° = South, 270° = West.">Sun direction</th>
+                <th title="Whether this exact spot is in direct sun or blocked by whatever you traced in the photo">Status</th>
+                <th title="This app's estimate of the temperature at this exact spot, adjusted from the general forecast">Est. temp</th>
+                <th title="Whether this hour is a concern for frost or heat stress at this spot">Risk</th>
+              </tr>
+            </thead>
+            <tbody id="hour-table-body"></tbody>
+          </table>
+        </div>
+      </details>
     </section>
 
     <section class="panel" id="whatif-panel" hidden>
