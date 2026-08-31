@@ -9,19 +9,30 @@
 const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 const DEFAULT_MODEL = "gemini-3.6-flash";
 
-const SYSTEM_PROMPT = `You explain a yard-monitoring app's results in plain
-English for someone who isn't technical. You will be given REAL,
-already-computed numbers for one exact spot — never invent, round away, or
-contradict them. If a clock-time range is given for frost or heat hours
-(e.g. "1AM-5AM"), say when it happens, not just how many hours — "colder
-overnight, especially 1AM to 5AM" beats "5 hours of frost risk." Write 3-4
-short sentences: what's actually going on at this spot today, and the one
-or two things worth doing about it (watering timing, frost/heat concern,
-etc.). No jargon like "azimuth" or "elevation." No bullet points, no
-headers — just plain sentences a person would actually say to a friend. Do
-not repeat every number robotically; pick what matters.`;
+const SYSTEM_PROMPT = `You explain a yard-monitoring app's results for
+someone who isn't technical. You will be given REAL, already-computed
+numbers for one exact spot — never invent, round away, or contradict them.
+If a clock-time range is given for frost or heat hours (e.g. "1AM-5AM"),
+say when it happens, not just how many hours — "colder overnight,
+especially 1AM to 5AM" beats "5 hours of frost risk."
 
-function demoSummary(c) {
+Write 3-4 short sentences of actual content: what's really going on at
+this spot today, referencing the real numbers you were given, and the one
+or two things worth doing about it (watering timing, frost/heat concern,
+etc.).
+
+Critical: respond with ONLY those sentences. Do not describe your own tone,
+style, or approach — never write a label, preamble, or meta-description
+like "Plain English, conversational, friendly" or "Here's a simple
+summary:". Do not use jargon like "azimuth" or "elevation," bullet points,
+or headers. Start the very first word of your reply with real content
+about the spot, not a description of how you're about to write it.`;
+
+// A deterministic, template-built summary from the real numbers — used both
+// as the demo-mode reply (no key configured) and as a safety-net fallback
+// if a live model call returns something unusable (see the defensive check
+// below). Callers add their own trailing note for which case it is.
+function templateSummary(c) {
   const bits = [];
   bits.push(`This spot gets about ${c.sunHours ?? "some"} hours of direct sun today.`);
   if (c.frostHours) {
@@ -34,8 +45,11 @@ function demoSummary(c) {
   }
   if (c.plantSeverity && c.plantSeverity !== "none") bits.push(`Sun/heat stress on plants here is rated "${c.plantSeverity}" today.`);
   if (typeof c.waterBefore === "number") bits.push(`Consider watering before the heat builds up and again once it eases off.`);
-  bits.push("(Demo mode — connect a live AI key for a real generated summary.)");
   return bits.join(" ");
+}
+
+function demoSummary(c) {
+  return `${templateSummary(c)} (Demo mode — connect a live AI key for a real generated summary.)`;
 }
 
 export default async function handler(req, res) {
@@ -76,7 +90,7 @@ export default async function handler(req, res) {
           { role: "user", content: contextText },
         ],
         temperature: 0.5,
-        max_tokens: 220,
+        max_tokens: 320,
       }),
     });
 
@@ -86,7 +100,19 @@ export default async function handler(req, res) {
     }
 
     const data = await upstream.json();
-    const summary = data?.choices?.[0]?.message?.content?.trim() || "Sorry — couldn't put that into words right now.";
+    let summary = data?.choices?.[0]?.message?.content?.trim() || "";
+
+    // Defensive check: some models occasionally return a meta-description of
+    // their own tone ("Plain English, conversational, friendly.") instead of
+    // real content, especially when truncated. A real summary always
+    // references at least one of the actual numbers it was given — if it
+    // doesn't, or it's suspiciously short, fall back to the deterministic
+    // template rather than show the user a broken non-answer.
+    const looksLikeRealContent = summary.length > 40 && /\d/.test(summary);
+    if (!looksLikeRealContent) {
+      return res.status(200).json({ mode: "live", summary: templateSummary(context), fallback: true });
+    }
+
     return res.status(200).json({ mode: "live", summary });
   } catch (err) {
     return res.status(502).json({ error: "The summary couldn't be reached right now.", detail: String(err).slice(0, 300), mode: "live" });
