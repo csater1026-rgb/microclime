@@ -234,6 +234,8 @@ function captureFromVideo() {
     closeCameraModal();
     if (target === "plant") {
       handlePlantPhoto(img);
+    } else if (target === "placement") {
+      runPlacementLookup({ imageDataUrl: downscaleImage(img, 768) });
     } else {
       applyPhoto(img);
       tryLocationFromDevice(
@@ -383,6 +385,20 @@ resetBaselineBtn.addEventListener("click", () => {
 // side. The photo itself isn't saved (too large for localStorage) — only
 // the traced horizon, which is all the math actually needs.
 
+// Computes one saved spot's real sun-hours for the currently selected date,
+// using that spot's own saved location (falling back to the working
+// location if the spot predates location tracking). Returns null if no
+// location is available for it at all.
+function computeSpotSunHours(spot) {
+  const lat = typeof spot.lat === "number" ? spot.lat : state.lat;
+  const lon = typeof spot.lon === "number" ? spot.lon : state.lon;
+  if (typeof lat !== "number" || typeof lon !== "number") return null;
+  const [y, m, d] = (state.date || defaultState().date).split("-").map(Number);
+  const dense = resolveSparseTrace(spot.trace);
+  const { sunHours } = computeSunRows(dense, spot.heading, spot.fov, lat, lon, y, m, d);
+  return sunHours;
+}
+
 function renderSpots() {
   if (state.spots.length === 0) {
     spotsPanel.hidden = true;
@@ -480,6 +496,125 @@ spotsList.addEventListener("click", (e) => {
     renderSpots();
   }
 });
+
+// --- Where should I plant this? ---
+//
+// Identifies a plant's general sun-need range (AI, textbook knowledge only —
+// see api/plant-placement.js) and ranks it against every saved spot's REAL
+// computed sun-hours for the current date. The AI never sees or touches the
+// spot data; the ranking itself is plain deterministic comparison.
+
+const placementNameInput = el("placement-name-input");
+const placementFindBtn = el("placement-find-btn");
+const placementTakePhotoBtn = el("placement-take-photo-btn");
+const placementUploadPhotoBtn = el("placement-upload-photo-btn");
+const placementCameraInput = el("placement-camera-input");
+const placementFileInput = el("placement-file-input");
+const placementResult = el("placement-result");
+
+async function runPlacementLookup(payload) {
+  placementResult.innerHTML = `<p class="plant-analysis-status">Looking up its sun needs…</p>`;
+  try {
+    const res = await fetch("/api/plant-placement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      placementResult.innerHTML = `<p class="plant-analysis-status error">Couldn't look that up (${data.error || res.status}).</p>`;
+      return;
+    }
+    renderPlacementResult(data.plant, data.mode);
+  } catch (err) {
+    placementResult.innerHTML = `<p class="plant-analysis-status error">Couldn't reach the lookup service right now.</p>`;
+  }
+}
+
+function renderPlacementResult(plant, mode) {
+  if (!plant || typeof plant.idealSunHoursMin !== "number" || typeof plant.idealSunHoursMax !== "number") {
+    placementResult.innerHTML = `<p class="plant-analysis-status error">Couldn't determine a sun-need range for that.</p>`;
+    return;
+  }
+
+  const rankable = state.spots
+    .map((spot) => ({ spot, sunHours: computeSpotSunHours(spot) }))
+    .filter((r) => r.sunHours !== null);
+
+  const plantCardHtml = `<div class="placement-plant-card">
+    <span class="placement-species">${plant.species || "Unknown plant"}</span>
+    ${mode === "demo" ? ' <span class="plant-analysis-status">(demo mode)</span>' : ""}
+    — wants <span class="placement-range">${plant.idealSunHoursMin}-${plant.idealSunHoursMax} hours</span> of direct sun.
+    ${plant.notes ? `<p>${plant.notes}</p>` : ""}
+  </div>`;
+
+  if (rankable.length === 0) {
+    placementResult.innerHTML = plantCardHtml + `<p class="plant-analysis-status">Save at least one spot above to see how it stacks up.</p>`;
+    return;
+  }
+
+  const ranked = rankable
+    .map((r) => {
+      const { sunHours } = r;
+      let distance, verdict;
+      if (sunHours >= plant.idealSunHoursMin && sunHours <= plant.idealSunHoursMax) {
+        distance = 0;
+        verdict = "Right in its sweet spot";
+      } else if (sunHours < plant.idealSunHoursMin) {
+        distance = plant.idealSunHoursMin - sunHours;
+        verdict = `Falls short — needs ${plant.idealSunHoursMin}-${plant.idealSunHoursMax}h, gets ${sunHours}h`;
+      } else {
+        distance = sunHours - plant.idealSunHoursMax;
+        verdict = `More sun than it needs — could mean extra water in the heat`;
+      }
+      return { ...r, distance, verdict };
+    })
+    .sort((a, b) => a.distance - b.distance || b.sunHours - a.sunHours);
+
+  const medals = ["Best", "2nd", "3rd"];
+  const rankingHtml = ranked
+    .map((r, i) => {
+      const medal = medals[i] || `${i + 1}th`;
+      const bestClass = i === 0 ? " best" : "";
+      return `<div class="placement-rank${bestClass}">
+        <span class="placement-rank-medal">${medal}</span>
+        <div class="placement-rank-info">
+          <div class="placement-rank-name">${r.spot.name}</div>
+          <div class="placement-rank-verdict">${r.verdict}</div>
+        </div>
+        <span class="placement-rank-hours">${r.sunHours}h</span>
+      </div>`;
+    })
+    .join("");
+
+  placementResult.innerHTML = plantCardHtml + `<div class="placement-ranking">${rankingHtml}</div>`;
+}
+
+placementFindBtn.addEventListener("click", () => {
+  const name = placementNameInput.value.trim();
+  if (!name) {
+    placementResult.innerHTML = `<p class="plant-analysis-status error">Type a plant name first, or use a photo instead.</p>`;
+    return;
+  }
+  runPlacementLookup({ plantName: name });
+});
+
+placementTakePhotoBtn.addEventListener("click", () => openCameraModal("placement", placementCameraInput));
+placementUploadPhotoBtn.addEventListener("click", () => placementFileInput.click());
+
+function loadPlacementPhotoFrom(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => runPlacementLookup({ imageDataUrl: downscaleImage(img, 768) });
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+placementCameraInput.addEventListener("change", () => loadPlacementPhotoFrom(placementCameraInput));
+placementFileInput.addEventListener("change", () => loadPlacementPhotoFrom(placementFileInput));
 
 headingInput.addEventListener("input", () => {
   state.heading = ((parseInt(headingInput.value, 10) || 0) % 360 + 360) % 360;

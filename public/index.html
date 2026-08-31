@@ -356,6 +356,25 @@
       <h2 class="panel-title"><span class="step-badge">5</span>Your yard's sun zones</h2>
       <p class="panel-sub">Every spot you've saved, grouped by how much sun it actually gets — so you know what to plant where.</p>
       <div class="spots-list" id="spots-list"></div>
+
+      <div class="placement-section">
+        <p class="panel-sub" id="placement-lede">Have a specific plant? We'll check it against every spot you've saved and tell you which one actually fits its real sun needs.</p>
+        <div class="field-row">
+          <div class="field">
+            <label for="placement-name-input">Plant name</label>
+            <input type="text" id="placement-name-input" placeholder="e.g. tomato, hosta, lavender" />
+          </div>
+          <button class="btn-primary" id="placement-find-btn" type="button">Find the best spot</button>
+        </div>
+        <div class="photo-source-row placement-photo-row">
+          <span class="field-hint">or identify it from a photo:</span>
+          <button class="btn-secondary" id="placement-take-photo-btn" type="button">Take a photo</button>
+          <button class="btn-secondary" id="placement-upload-photo-btn" type="button">Upload a file</button>
+        </div>
+        <input type="file" id="placement-camera-input" accept="image/*" capture="environment" hidden />
+        <input type="file" id="placement-file-input" accept="image/*" hidden />
+        <div id="placement-result"></div>
+      </div>
     </section>
 
     <section class="panel" id="community-panel" hidden>

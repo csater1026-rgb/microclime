@@ -680,6 +680,64 @@ input[type="file"] {
 .spot-card .spot-suggestion { font-size: 13px; color: var(--text-dim); margin-top: 6px; }
 .spot-card .spot-actions { display: flex; gap: 8px; }
 
+.placement-section {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-soft);
+}
+.placement-photo-row {
+  align-items: center;
+  margin-top: 10px;
+}
+.placement-photo-row .field-hint { margin: 0; }
+#placement-result { margin-top: 16px; }
+
+.placement-plant-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+.placement-plant-card .placement-species { font-weight: 700; font-size: 15px; color: var(--text); }
+.placement-plant-card .placement-range { color: var(--accent); font-weight: 600; }
+
+.placement-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.placement-rank {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+}
+.placement-rank.best { border-color: var(--good); background: rgba(47,158,99,0.08); }
+.placement-rank-medal {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-faint);
+  width: 24px;
+  flex-shrink: 0;
+  text-align: center;
+}
+.placement-rank.best .placement-rank-medal { color: var(--good); }
+.placement-rank-info { flex: 1; min-width: 0; }
+.placement-rank-name { font-weight: 700; font-size: 14.5px; }
+.placement-rank-verdict { font-size: 12.5px; color: var(--text-dim); margin-top: 2px; }
+.placement-rank-hours {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
 .community-note {
   display: flex;
   align-items: flex-start;
