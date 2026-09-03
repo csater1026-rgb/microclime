@@ -44,11 +44,24 @@ across your whole zip code.
    single weather station. Building the real multi-user version was out of
    scope for a solo build on this timeline, so this is shown as a working
    demo with seeded data alongside your real computed numbers.
-7. **AI plant identification, tied to the real numbers.** Add a photo of the
-   actual plant and the model identifies it and gives species-specific
-   watering and sun-exposure advice — built directly on top of this spot's
-   real, already-computed sun-hours and heat-risk data, not a generic
+7. **AI plant identification, tied to the real numbers.** Add a photo — a
+   close-up or the same wide horizon shot from step 2, showing multiple
+   plants/grass/trees at once — and the model identifies what's there and
+   gives species-specific watering and sun-exposure advice, with the actual
+   clock-time ranges for hot and frost hours, not just counts. Built
+   directly on this spot's real, already-computed data, not a generic
    database lookup.
+8. **"Where should I plant this?"** Name a plant (or show it a photo) and
+   it ranks every spot you've saved by how well each one's real computed
+   sun-hours actually fits that plant's known sun needs — the AI only
+   supplies the plant's general sun requirement; the ranking itself is
+   plain, deterministic comparison against real numbers, not an AI guess.
+
+Real location auto-detection throughout: a live photo grabs your device's
+GPS automatically, and an uploaded photo reads its location straight out of
+its EXIF metadata — location only needs to be typed manually as a fallback.
+Every result also opens with an AI-generated plain-English summary, so the
+technical hour-by-hour table is optional detail, not the first thing shown.
 
 No login. No accounts. Everything lives in your browser.
 
@@ -75,8 +88,9 @@ in a cold trap that frosts before the forecast does, or gets four hours of
 scorching, unblocked afternoon sun that a plant ten feet away never sees.
 Microclime's whole engine exists to answer that one question — real
 sun-hours for one real spot — and everything else (frost risk, heat-stress
-watering windows, the AI plant identification, calibration over time) is
-built on top of that real, location-specific number. The goal isn't a
+watering windows, the AI plant identification, "where should I plant this"
+ranking, calibration over time) is built on top of that real,
+location-specific number. The goal isn't a
 one-time diagnosis; it's sustained outdoor plant, grass, and tree health —
 watered enough, not sunburned, not caught by frost — based on what that
 exact spot's sun and weather are actually doing, not a generic care sheet.
@@ -87,7 +101,8 @@ exact spot's sun and weather are actually doing, not a generic care sheet.
   frost model, self-calibration, and what-if layer built on top are.
 - **Adherence to Earth Forward** — directly about growing food and plants
   more efficiently, reducing water waste and frost losses.
-- **Completion** — all five core phases are built, tested, and working;
+- **Completion** — all core phases plus the AI plant ID, plant-placement
+  ranking, and plain-English summary layers are built, tested, and working;
   the community layer is honestly labeled as a concept demo, not oversold.
 - **Learning** — real solar-position astronomy, image-based horizon
   tracing, a radiative-cooling estimate, and a self-calibrating feedback
@@ -109,14 +124,17 @@ the browser (`localStorage`) only; no accounts, no server-side database.
 ## AI use disclosure
 
 Claude Code (Anthropic) was used as a coding assistant throughout the build.
-The app's core logic — sun-hours, frost/heat risk, calibration, and zone
-classification — is entirely deterministic code we wrote ourselves; no AI
-model touches it. Google Gemini (via its OpenAI-compatible API) powers two
-specific, supporting features on top of that real data: identifying a
-plant from a photo and tailoring advice to it, and generating a
-plain-English summary of the already-computed results on request. Both are
-optional, both are clearly labeled, and both are fed the real numbers as
-context rather than being asked to invent them.
+The app's core logic — sun-hours, frost/heat risk, calibration, zone
+classification, and the plant-placement ranking math — is entirely
+deterministic code we wrote ourselves; no AI model touches it. Google
+Gemini (via its OpenAI-compatible API) powers three specific, supporting
+features on top of that real data: identifying a plant from a photo and
+tailoring advice to it, looking up a named or photographed plant's general
+sun-need range (used only as an input to the deterministic ranking, never
+the ranking decision itself), and generating a plain-English summary of
+the already-computed results. All three are fed the real numbers as
+context and instructed never to invent or contradict them; none of them
+make the underlying decisions.
 
 ## Try it
 
