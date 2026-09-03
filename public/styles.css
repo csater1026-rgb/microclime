@@ -566,6 +566,13 @@ input[type="file"] {
 }
 .ai-summary.loading { color: var(--text-faint); font-style: italic; }
 .ai-summary.error { color: var(--danger); }
+.ai-summary-detail {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-faint);
+  font-family: monospace;
+  word-break: break-word;
+}
 
 .weather-status {
   font-size: 13px;

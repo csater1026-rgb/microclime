@@ -54,6 +54,12 @@ let plantAutoAnalyzedFor = null; // avoids re-running AI plant ID on the same ph
 
 const el = (id) => document.getElementById(id);
 
+function escapeHtml(s) {
+  const d = document.createElement("div");
+  d.textContent = s;
+  return d.innerHTML;
+}
+
 const latInput = el("lat-input");
 const lonInput = el("lon-input");
 const dateInput = el("date-input");
@@ -1154,7 +1160,13 @@ async function runSummarize() {
     const data = await res.json();
     if (!res.ok) {
       aiSummary.className = "ai-summary error";
-      aiSummary.textContent = `Couldn't generate a summary (${data.error || res.status}).`;
+      // data.detail carries the actual upstream failure (auth, quota, rate
+      // limit, etc.) — showing only the generic wrapper message left every
+      // real cause invisible to both the user and whoever debugs it next.
+      aiSummary.innerHTML = `Couldn't generate a summary (${data.error || res.status}).${
+        data.detail ? `<div class="ai-summary-detail">${escapeHtml(data.detail)}</div>` : ""
+      }`;
+      console.error("Summary request failed:", data);
       return;
     }
     aiSummary.className = "ai-summary";
@@ -1162,7 +1174,8 @@ async function runSummarize() {
     aiSummary.innerHTML = `<span class="ai-summary-label">${label}</span>${data.summary}`;
   } catch (err) {
     aiSummary.className = "ai-summary error";
-    aiSummary.textContent = "Couldn't reach the summary service right now.";
+    aiSummary.innerHTML = `Couldn't reach the summary service right now.<div class="ai-summary-detail">${escapeHtml(String(err))}</div>`;
+    console.error("Summary request threw:", err);
   } finally {
     summarizeRow.hidden = false;
   }
