@@ -103,6 +103,7 @@ const hourTableBody = el("hour-table-body");
 const calibratePanel = el("calibrate-panel");
 const observedTempInput = el("observed-temp-input");
 const observedFrostInput = el("observed-frost-input");
+observedTempInput.addEventListener("input", () => { observedTempInput.dataset.autoFilled = ""; });
 const saveObservationBtn = el("save-observation-btn");
 const calibrationStatus = el("calibration-status");
 const calibrationLogEl = el("calibration-log");
@@ -921,6 +922,22 @@ function recompute() {
   loadWeatherAndRisk(token, rows, sunHours, baselineResult);
 }
 
+// Pre-fills the calibration temperature with tonight's coldest predicted
+// hour from the same hour-by-hour sun/shade + risk data already computed
+// above — the user shouldn't have to separately look that number up and
+// retype it. Only overwrites the field while it still holds an earlier
+// auto-filled value (or is empty); a value the user actually typed is left
+// alone, since calibration only means something as a genuine observation.
+function prefillCalibrationDefaults(rows) {
+  const temps = rows.filter((r) => r.risk).map((r) => r.risk.localTemp);
+  if (!temps.length) return;
+  const coldestF = Math.round(cToF(Math.min(...temps)));
+  if (observedTempInput.value === "" || observedTempInput.dataset.autoFilled === "true") {
+    observedTempInput.value = coldestF;
+    observedTempInput.dataset.autoFilled = "true";
+  }
+}
+
 function applyRisk(rows, sunHours, byHour, biasC) {
   let frostHours = 0;
   let heatHours = 0;
@@ -951,6 +968,7 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
     const { frostHours, heatHours } = applyRisk(rows, sunHours, byHour, biasC);
     currentFrostHours = frostHours;
     currentHeatHours = heatHours;
+    prefillCalibrationDefaults(rows);
 
     let baselineFrostHours = null;
     if (baselineResult) {
@@ -1130,10 +1148,16 @@ plantFileInput.addEventListener("change", () => loadPlantPhotoFrom(plantFileInpu
 // the first thing shown — not something a user has to know to click for.
 // The button becomes a "Regenerate" option once a summary has been shown.
 
-async function runSummarize() {
+// Auto-fires on every result load (see scheduleSummarize below), which
+// makes it the single most-called AI endpoint in the app — a transient
+// hiccup (a cold serverless start, a momentary rate limit) here is far more
+// likely to actually get hit than on the click-triggered endpoints. One
+// silent retry after a short delay turns most of those into a non-event
+// instead of a dead-end error the user has to notice and manually retry.
+async function runSummarize(isRetry = false) {
   aiSummary.hidden = false;
   aiSummary.className = "ai-summary loading";
-  aiSummary.textContent = "Putting this into plain English…";
+  aiSummary.textContent = isRetry ? "Trying again…" : "Putting this into plain English…";
 
   const plantResult = PlantCare.assess(currentRows);
   const plantSeverity = plantResult.severity;
@@ -1159,11 +1183,16 @@ async function runSummarize() {
     });
     const data = await res.json();
     if (!res.ok) {
+      if (!isRetry && (res.status === 429 || res.status >= 500)) {
+        console.warn(`Summary request failed (${res.status}), retrying once in 3s…`, data);
+        setTimeout(() => runSummarize(true), 3000);
+        return;
+      }
       aiSummary.className = "ai-summary error";
       // data.detail carries the actual upstream failure (auth, quota, rate
       // limit, etc.) — showing only the generic wrapper message left every
       // real cause invisible to both the user and whoever debugs it next.
-      aiSummary.innerHTML = `Couldn't generate a summary (${data.error || res.status}).${
+      aiSummary.innerHTML = `Couldn't generate a summary — the server said: ${escapeHtml(data.error || String(res.status))}.${
         data.detail ? `<div class="ai-summary-detail">${escapeHtml(data.detail)}</div>` : ""
       }`;
       console.error("Summary request failed:", data);
@@ -1173,8 +1202,13 @@ async function runSummarize() {
     const label = data.mode === "demo" ? "Summary (demo mode)" : "Summary";
     aiSummary.innerHTML = `<span class="ai-summary-label">${label}</span>${data.summary}`;
   } catch (err) {
+    if (!isRetry) {
+      console.warn("Summary request threw, retrying once in 3s…", err);
+      setTimeout(() => runSummarize(true), 3000);
+      return;
+    }
     aiSummary.className = "ai-summary error";
-    aiSummary.innerHTML = `Couldn't reach the summary service right now.<div class="ai-summary-detail">${escapeHtml(String(err))}</div>`;
+    aiSummary.innerHTML = `Couldn't reach the summary service at all (network error, not the server responding) — ${escapeHtml(String(err))}.`;
     console.error("Summary request threw:", err);
   } finally {
     summarizeRow.hidden = false;
