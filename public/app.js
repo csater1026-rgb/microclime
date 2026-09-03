@@ -82,6 +82,8 @@ const headingRow = el("heading-row");
 const headingInput = el("heading-input");
 const fovInput = el("fov-input");
 const clearTraceBtn = el("clear-trace-btn");
+const autoDetectBtn = el("auto-detect-btn");
+const traceStatus = el("trace-status");
 const resultsPanel = el("results-panel");
 const resultsSummary = el("results-summary");
 const weatherStatus = el("weather-status");
@@ -308,6 +310,68 @@ function syncPhotoReuseButtons() {
   placementUseHorizonBtn.disabled = !photoImg;
 }
 
+// Auto-detects the skyline from the photo's actual pixels, so tracing
+// starts from a real guess instead of a blank canvas — still fully
+// editable by hand afterward, same as every other auto-fill in this app.
+// No library: for each vertical strip, score every row by how "sky-like"
+// it is (bright, blue-biased) and pick the row that best splits the strip
+// into a sky-scoring region above and a darker/greener region below — a
+// simple 1D Otsu-style threshold, run independently per strip.
+function detectHorizonTrace() {
+  const w = canvas.width;
+  const h = canvas.height;
+  if (!w || !h) return null;
+  let imageData;
+  try {
+    imageData = ctx.getImageData(0, 0, w, h);
+  } catch {
+    return null; // shouldn't happen (photo is always same-origin/data-URL), but don't crash if it does
+  }
+  const data = imageData.data;
+  const marginTop = Math.max(1, Math.round(h * 0.03));
+  const marginBottom = Math.max(1, Math.round(h * 0.03));
+  const result = new Array(BUCKETS);
+
+  for (let i = 0; i < BUCKETS; i++) {
+    const xCenter = ((i + 0.5) / BUCKETS) * w;
+    const xStart = Math.max(0, Math.floor(xCenter - 1));
+    const xEnd = Math.min(w - 1, Math.ceil(xCenter + 1));
+    const colWidth = xEnd - xStart + 1;
+
+    const rowScore = new Float64Array(h);
+    for (let y = 0; y < h; y++) {
+      let sum = 0;
+      const rowStart = y * w;
+      for (let x = xStart; x <= xEnd; x++) {
+        const idx = (rowStart + x) * 4;
+        const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+        const brightness = (r + g + b) / 3;
+        const blueBias = b - (r + g) / 2; // positive for blue/bright sky, negative for foliage/dirt
+        sum += brightness + blueBias * 0.5;
+      }
+      rowScore[y] = sum / colWidth;
+    }
+
+    const prefix = new Float64Array(h + 1);
+    for (let y = 0; y < h; y++) prefix[y + 1] = prefix[y] + rowScore[y];
+    const total = prefix[h];
+
+    let bestSplit = -1;
+    let bestScore = -Infinity;
+    for (let y = marginTop; y < h - marginBottom; y++) {
+      const skyAvg = prefix[y] / y;
+      const groundAvg = (total - prefix[y]) / (h - y);
+      const score = skyAvg - groundAvg;
+      if (score > bestScore) {
+        bestScore = score;
+        bestSplit = y;
+      }
+    }
+    result[i] = bestSplit >= 0 ? bestSplit / h : 0.5;
+  }
+  return result;
+}
+
 function applyPhoto(img) {
   photoImg = img;
   syncPhotoReuseButtons();
@@ -322,6 +386,12 @@ function applyPhoto(img) {
   baseline = null;
   resetBaselineBtn.hidden = true;
   saveBaselineBtn.textContent = 'Save as "how it is now"';
+  drawCanvas(); // draws the raw image only (trace is still empty) — needed before pixel analysis
+  const detected = detectHorizonTrace();
+  if (detected) {
+    trace = detected;
+    traceStatus.textContent = "Horizon auto-detected from the photo — drag any point to correct it.";
+  }
   drawCanvas();
   recompute();
 }
@@ -437,6 +507,25 @@ window.addEventListener("pointerup", () => {
 
 clearTraceBtn.addEventListener("click", () => {
   trace = new Array(BUCKETS).fill(null);
+  traceStatus.textContent = "";
+  drawCanvas();
+  recompute();
+});
+
+autoDetectBtn.addEventListener("click", () => {
+  if (!photoImg) {
+    traceStatus.textContent = "Take or upload a photo first.";
+    return;
+  }
+  trace = new Array(BUCKETS).fill(null);
+  drawCanvas(); // clear any existing trace overlay before re-reading raw pixels
+  const detected = detectHorizonTrace();
+  if (detected) {
+    trace = detected;
+    traceStatus.textContent = "Horizon re-detected from the photo — drag any point to correct it.";
+  } else {
+    traceStatus.textContent = "Couldn't auto-detect a horizon from this photo — trace it by clicking along the skyline.";
+  }
   drawCanvas();
   recompute();
 });

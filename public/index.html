@@ -6,7 +6,7 @@
   <title>Microclime — know your exact spot</title>
   <meta name="description" content="Weather apps know your zip code. Microclime knows the exact corner of your yard — real sun-hours, frost risk, and what-if planting simulation for one specific spot." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff8a5c' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1'/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="./styles.css?v=4" />
+  <link rel="stylesheet" href="./styles.css?v=5" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -72,7 +72,7 @@
           <span class="step-badge">2</span>
           <div>
             <div class="intro-step-title">Trace your real horizon</div>
-            <div class="intro-step-body">Take a photo with a real in-browser camera (works on phones and laptops) or upload one, then trace the skyline — where trees, roofs, or fences actually block the sky. This is what makes the sun-hours specific to your spot instead of a generic estimate.</div>
+            <div class="intro-step-body">Take a photo with a real in-browser camera (works on phones and laptops) or upload one — the skyline (where trees, roofs, or fences actually block the sky) gets traced automatically from the photo's pixels, and you can drag any point to fix it if it got something wrong. This is what makes the sun-hours specific to your spot instead of a generic estimate.</div>
           </div>
         </div>
         <div class="intro-step">
@@ -220,12 +220,12 @@
       <h2 class="panel-title"><span class="step-badge">2</span>Trace your real horizon</h2>
       <p class="panel-sub">
         Take a photo from the exact spot, holding your phone level and
-        pointed at one direction. Then trace the skyline — where trees,
-        roofs, or fences block the sky. Click along the photo to mark the
-        blocking height at each point. Enter your location above, OR just
-        take or upload a photo below — a live photo grabs your device's
-        location automatically, and an uploaded photo reads its location
-        from the photo itself if it has any.
+        pointed at one direction. The skyline — where trees, roofs, or
+        fences block the sky — gets traced automatically from the photo;
+        drag any point to correct it if it got something wrong. Enter your
+        location above, OR just take or upload a photo below — a live photo
+        grabs your device's location automatically, and an uploaded photo
+        reads its location from the photo itself if it has any.
       </p>
 
       <div class="photo-source-row">
@@ -238,6 +238,7 @@
       <div class="canvas-wrap" id="canvas-wrap" hidden>
         <canvas id="trace-canvas"></canvas>
       </div>
+      <p class="field-hint" id="trace-status"></p>
 
       <div class="field-row" id="heading-row" hidden>
         <div class="field">
@@ -250,6 +251,7 @@
           <input type="number" id="fov-input" min="20" max="120" value="60" />
           <span class="field-hint" id="fov-hint">Auto-detected from the photo when possible. Leave this at 60 unless you know your phone's camera is different — it's right for most phones.</span>
         </div>
+        <button class="btn-secondary" id="auto-detect-btn" type="button">Re-run auto-detect</button>
         <button class="btn-secondary" id="clear-trace-btn" type="button">Clear trace</button>
       </div>
 
@@ -406,12 +408,12 @@
     Built for NextStep Hacks 2026 (theme: Earth Forward) by Christian Saterfield.
   </footer>
 
-  <script src="./exif.js?v=4"></script>
-  <script src="./solar.js?v=4"></script>
-  <script src="./weather.js?v=4"></script>
-  <script src="./risk.js?v=4"></script>
-  <script src="./zones.js?v=4"></script>
-  <script src="./plantcare.js?v=4"></script>
-  <script src="./app.js?v=4"></script>
+  <script src="./exif.js?v=5"></script>
+  <script src="./solar.js?v=5"></script>
+  <script src="./weather.js?v=5"></script>
+  <script src="./risk.js?v=5"></script>
+  <script src="./zones.js?v=5"></script>
+  <script src="./plantcare.js?v=5"></script>
+  <script src="./app.js?v=5"></script>
 </body>
 </html>
