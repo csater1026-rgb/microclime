@@ -568,6 +568,7 @@ spotsList.addEventListener("click", (e) => {
 
 const placementNameInput = el("placement-name-input");
 const placementFindBtn = el("placement-find-btn");
+const placementUseHorizonBtn = el("placement-use-horizon-btn");
 const placementTakePhotoBtn = el("placement-take-photo-btn");
 const placementUploadPhotoBtn = el("placement-upload-photo-btn");
 const placementCameraInput = el("placement-camera-input");
@@ -661,6 +662,13 @@ placementFindBtn.addEventListener("click", () => {
   runPlacementLookup({ plantName: name });
 });
 
+placementUseHorizonBtn.addEventListener("click", () => {
+  if (!photoImg) {
+    placementResult.innerHTML = `<p class="plant-analysis-status error">Take or upload a photo of your yard in step 2 first — or take/upload a new one below.</p>`;
+    return;
+  }
+  runPlacementLookup({ imageDataUrl: downscaleImage(photoImg, 768) });
+});
 placementTakePhotoBtn.addEventListener("click", () => openCameraModal("placement", placementCameraInput));
 placementUploadPhotoBtn.addEventListener("click", () => placementFileInput.click());
 

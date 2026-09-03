@@ -294,6 +294,7 @@ input[type="file"] {
 
 .photo-source-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
