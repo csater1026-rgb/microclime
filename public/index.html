@@ -6,7 +6,7 @@
   <title>Microclime — know your exact spot</title>
   <meta name="description" content="Weather apps know your zip code. Microclime knows the exact corner of your yard — real sun-hours, frost risk, and what-if planting simulation for one specific spot." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff8a5c' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1'/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="./styles.css?v=5" />
+  <link rel="stylesheet" href="./styles.css?v=6" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -72,7 +72,7 @@
           <span class="step-badge">2</span>
           <div>
             <div class="intro-step-title">Trace your real horizon</div>
-            <div class="intro-step-body">Take a photo with a real in-browser camera (works on phones and laptops) or upload one — the skyline (where trees, roofs, or fences actually block the sky) gets traced automatically from the photo's pixels, and you can drag any point to fix it if it got something wrong. This is what makes the sun-hours specific to your spot instead of a generic estimate.</div>
+            <div class="intro-step-body">Take a photo with a real in-browser camera (works on phones and laptops) or upload one — the skyline (where trees, roofs, or fences actually block the sky) gets traced automatically from the photo's pixels, and you can drag any point to fix it if it got something wrong. Which way you were facing and how wide the shot is get filled in automatically too (from the photo's metadata, or your phone's live compass), so there's usually nothing to type. This is what makes the sun-hours specific to your spot instead of a generic estimate.</div>
           </div>
         </div>
         <div class="intro-step">
@@ -86,14 +86,14 @@
           <span class="step-badge">4</span>
           <div>
             <div class="intro-step-title">Plant &amp; grass burn risk</div>
-            <div class="intro-step-body">Real watering-time suggestions based on this spot's actual hot-sun hours. Add a photo — of your horizon shot or a close-up — and AI identifies what's actually growing there (even a wide yard shot with grass, trees, and shrubs together) and tailors advice to that species using your spot's real numbers.</div>
+            <div class="intro-step-body">Real watering-time suggestions based on this spot's actual hot-sun hours. AI automatically identifies what's growing there straight from your horizon photo (even a wide yard shot with grass, trees, and shrubs together) and tailors advice to that species using your spot's real numbers — no extra photo or click needed, though you can swap in a closer one.</div>
           </div>
         </div>
         <div class="intro-step">
           <span class="step-badge">5</span>
           <div>
             <div class="intro-step-title">Calibrate to your spot</div>
-            <div class="intro-step-body">Log what actually happened overnight (the real low, whether it frosted) and the model learns a correction for your exact spot — it gets more accurate the more you use it.</div>
+            <div class="intro-step-body">Optional, and for later: come back after a night passes and log what actually happened (pre-filled with tonight's predicted low so there's less to type — just correct it if reality was different) and the model learns a correction for your exact spot, getting more accurate the more you use it.</div>
           </div>
         </div>
         <div class="intro-step">
@@ -107,7 +107,7 @@
           <span class="step-badge">7</span>
           <div>
             <div class="intro-step-title">Your yard's sun zones — and where to plant next</div>
-            <div class="intro-step-body">Save more than one spot and they're automatically grouped into Full sun, Partial sun, or Mostly shade. Then tell it a specific plant (by name or photo) and it ranks all your saved spots by how well each one's real sun-hours actually fits that plant's needs.</div>
+            <div class="intro-step-body">Save more than one spot and they're automatically grouped into Full sun, Partial sun, or Mostly shade. Then tell it a specific plant — by typing its name, or with one click reusing your yard photo — and it ranks all your saved spots by how well each one's real sun-hours actually fits that plant's needs.</div>
           </div>
         </div>
         <div class="intro-step">
@@ -408,12 +408,12 @@
     Built for NextStep Hacks 2026 (theme: Earth Forward) by Christian Saterfield.
   </footer>
 
-  <script src="./exif.js?v=5"></script>
-  <script src="./solar.js?v=5"></script>
-  <script src="./weather.js?v=5"></script>
-  <script src="./risk.js?v=5"></script>
-  <script src="./zones.js?v=5"></script>
-  <script src="./plantcare.js?v=5"></script>
-  <script src="./app.js?v=5"></script>
+  <script src="./exif.js?v=6"></script>
+  <script src="./solar.js?v=6"></script>
+  <script src="./weather.js?v=6"></script>
+  <script src="./risk.js?v=6"></script>
+  <script src="./zones.js?v=6"></script>
+  <script src="./plantcare.js?v=6"></script>
+  <script src="./app.js?v=6"></script>
 </body>
 </html>
