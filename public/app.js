@@ -1184,15 +1184,25 @@ async function runSummarize(isRetry = false) {
     const data = await res.json();
     if (!res.ok) {
       if (!isRetry && (res.status === 429 || res.status >= 500)) {
-        console.warn(`Summary request failed (${res.status}), retrying once in 3s…`, data);
-        setTimeout(() => runSummarize(true), 3000);
+        // Gemini's own error tells us how long to actually wait — a fixed
+        // guess (e.g. 3s) is usually too short for a real rate limit and
+        // just fails again immediately. Clamp so a runaway/huge value
+        // doesn't leave the user staring at "loading" for a full minute.
+        const delaySeconds = Math.min(30, Math.max(3, data.retryAfterSeconds || 3));
+        console.warn(`Summary request failed (${res.status}), retrying once in ${delaySeconds}s…`, data);
+        aiSummary.textContent = `Retrying in ${delaySeconds}s…`;
+        setTimeout(() => runSummarize(true), delaySeconds * 1000);
         return;
       }
       aiSummary.className = "ai-summary error";
-      // data.detail carries the actual upstream failure (auth, quota, rate
-      // limit, etc.) — showing only the generic wrapper message left every
-      // real cause invisible to both the user and whoever debugs it next.
-      aiSummary.innerHTML = `Couldn't generate a summary — the server said: ${escapeHtml(data.error || String(res.status))}.${
+      // A daily/free-tier quota limit is a config issue on the connected AI
+      // plan, not an app bug — say that plainly instead of a scary JSON
+      // dump as the headline; the raw detail is still there underneath for
+      // whoever needs to actually debug it.
+      const headline = data.isQuota
+        ? "This spot's AI plan has used up its request quota for now — try again later, or check the plan's billing/quota settings."
+        : `Couldn't generate a summary — the server said: ${escapeHtml(data.error || String(res.status))}.`;
+      aiSummary.innerHTML = `${headline}${
         data.detail ? `<div class="ai-summary-detail">${escapeHtml(data.detail)}</div>` : ""
       }`;
       console.error("Summary request failed:", data);

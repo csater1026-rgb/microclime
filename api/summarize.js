@@ -52,6 +52,17 @@ function demoSummary(c) {
   return `${templateSummary(c)} (Demo mode — connect a live AI key for a real generated summary.)`;
 }
 
+// Gemini's rate-limit error message embeds a suggested wait ("...Please
+// retry in 23.11s...") — surfacing that lets the client retry with a delay
+// that's actually long enough, instead of guessing a fixed number that's
+// too short and just fails again.
+function parseRetryAfterSeconds(text) {
+  const m = /retry in ([\d.]+)\s*s/i.exec(text);
+  if (!m) return null;
+  const n = Math.ceil(parseFloat(m[1]));
+  return isFinite(n) ? n : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -96,7 +107,16 @@ export default async function handler(req, res) {
 
     if (!upstream.ok) {
       const detail = await upstream.text();
-      return res.status(502).json({ error: "The summary couldn't be reached right now.", detail: detail.slice(0, 500), mode: "live" });
+      const isQuota = upstream.status === 429 || /RESOURCE_EXHAUSTED|quota/i.test(detail);
+      return res.status(upstream.status === 429 ? 429 : 502).json({
+        error: isQuota
+          ? "The AI plan's request quota is used up right now."
+          : "The summary couldn't be reached right now.",
+        detail: detail.slice(0, 500),
+        retryAfterSeconds: parseRetryAfterSeconds(detail),
+        isQuota,
+        mode: "live",
+      });
     }
 
     const data = await upstream.json();

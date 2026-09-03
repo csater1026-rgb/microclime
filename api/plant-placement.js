@@ -103,7 +103,13 @@ export default async function handler(req, res) {
 
     if (!upstream.ok) {
       const detail = await upstream.text();
-      return res.status(502).json({ error: "Couldn't look that up right now.", detail: detail.slice(0, 500), mode: "live" });
+      const isQuota = upstream.status === 429 || /RESOURCE_EXHAUSTED|quota/i.test(detail);
+      return res.status(upstream.status === 429 ? 429 : 502).json({
+        error: isQuota ? "The AI plan's request quota is used up right now." : "Couldn't look that up right now.",
+        detail: detail.slice(0, 500),
+        isQuota,
+        mode: "live",
+      });
     }
 
     const data = await upstream.json();
