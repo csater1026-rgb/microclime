@@ -287,6 +287,14 @@ body {
 .btn-primary:hover { filter: brightness(1.06); }
 .btn-primary:active { transform: translateY(1px); }
 
+.btn-primary:disabled, .btn-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: none;
+  transform: none;
+}
+
 input[type="file"] {
   color: var(--text-dim);
   font-size: 14px;

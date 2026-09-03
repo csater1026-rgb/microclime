@@ -27,6 +27,23 @@ If you cannot identify a real plant from what's given, set species to
 "Couldn't identify a specific plant", confidence to "low", and use a
 reasonable general-purpose default range like 4 to 6.`;
 
+// Models occasionally wrap the JSON in prose ("Sure, here's the result:"),
+// use a code fence without the "json" tag, or add trailing commentary after
+// it — any of which broke a strict JSON.parse on the raw reply. Strip any
+// fence first, then fall back to just the substring between the first "{"
+// and the last "}" (in practice always the actual object) before giving up.
+function extractJson(raw) {
+  const fenced = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+  try {
+    return JSON.parse(fenced);
+  } catch {
+    const start = fenced.indexOf("{");
+    const end = fenced.lastIndexOf("}");
+    if (start === -1 || end === -1 || end <= start) throw new Error("no JSON object found");
+    return JSON.parse(fenced.slice(start, end + 1));
+  }
+}
+
 function demoPlacement() {
   return {
     species: "Demo mode — not identified",
@@ -91,11 +108,10 @@ export default async function handler(req, res) {
 
     const data = await upstream.json();
     const raw = data?.choices?.[0]?.message?.content?.trim() || "";
-    const cleaned = raw.replace(/^```json\s*|\s*```$/g, "").trim();
 
     let plant;
     try {
-      plant = JSON.parse(cleaned);
+      plant = extractJson(raw);
     } catch {
       return res.status(200).json({
         mode: "live",

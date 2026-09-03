@@ -290,8 +290,20 @@ uploadPhotoBtn.addEventListener("click", () => fileInput.click());
 cameraInput.addEventListener("change", () => loadPhotoFrom(cameraInput));
 fileInput.addEventListener("change", () => loadPhotoFrom(fileInput));
 
+// The "use my photo" reuse buttons (plant-care and plant-placement) only
+// work while the original photo is still in memory — it isn't persisted
+// with a saved spot (see the comment where photoImg is nulled below), so a
+// stale enabled button that just dead-ends into an error reads as "it
+// didn't use my photo." Disable them instead whenever there's no photo to
+// reuse, so it's obvious at a glance rather than discovered by clicking.
+function syncPhotoReuseButtons() {
+  plantUseHorizonBtn.disabled = !photoImg;
+  placementUseHorizonBtn.disabled = !photoImg;
+}
+
 function applyPhoto(img) {
   photoImg = img;
+  syncPhotoReuseButtons();
   trace = new Array(BUCKETS).fill(null);
   const wrapWidth = canvasWrap.clientWidth || 640;
   canvas.width = wrapWidth;
@@ -533,6 +545,7 @@ spotsList.addEventListener("click", (e) => {
 
   if (e.target.classList.contains("spot-load-btn")) {
     photoImg = null; // the original photo isn't saved — just the traced line
+    syncPhotoReuseButtons();
     trace = spot.trace.slice();
     state.heading = spot.heading;
     state.fov = spot.fov;
