@@ -243,12 +243,12 @@
         <div class="field">
           <label for="heading-input">Which way was your phone facing?</label>
           <input type="number" id="heading-input" min="0" max="359" value="180" />
-          <span class="field-hint">In degrees, like a compass: 0 = North, 90 = East, 180 = South, 270 = West. Open the Compass app on your phone, face the same way you took the photo, and type the number it shows.</span>
+          <span class="field-hint" id="heading-hint">In degrees, like a compass: 0 = North, 90 = East, 180 = South, 270 = West. Filled in automatically when your phone's compass or photo metadata has it — check it looks right, or open the Compass app and type the number it shows if not.</span>
         </div>
         <div class="field">
           <label for="fov-input">How wide is the photo? (°)</label>
           <input type="number" id="fov-input" min="20" max="120" value="60" />
-          <span class="field-hint">Leave this at 60 unless you know your phone's camera is different — it's right for most phones.</span>
+          <span class="field-hint" id="fov-hint">Auto-detected from the photo when possible. Leave this at 60 unless you know your phone's camera is different — it's right for most phones.</span>
         </div>
         <button class="btn-secondary" id="clear-trace-btn" type="button">Clear trace</button>
       </div>

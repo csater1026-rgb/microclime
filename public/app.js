@@ -190,8 +190,37 @@ useLocationBtn.addEventListener("click", () => {
 let cameraStream = null;
 let cameraTarget = "horizon"; // "horizon" or "plant" — which flow the capture feeds into
 
+// Best-effort live compass heading while the in-browser camera is open, so
+// a horizon photo doesn't need a separate Compass app + manual typing.
+// iOS exposes a ready-made true-north reading (webkitCompassHeading);
+// other browsers only expose raw device orientation, which is heading only
+// when explicitly flagged "absolute" — otherwise it's relative to wherever
+// the phone started and not a real compass bearing, so it's ignored.
+let lastCompassHeading = null;
+let compassHandlerAttached = false;
+
+function handleOrientationEvent(e) {
+  if (typeof e.webkitCompassHeading === "number") {
+    lastCompassHeading = e.webkitCompassHeading;
+  } else if (e.absolute === true && typeof e.alpha === "number") {
+    lastCompassHeading = (360 - e.alpha) % 360;
+  }
+}
+
+function startCompassListener() {
+  if (compassHandlerAttached || typeof DeviceOrientationEvent === "undefined") return;
+  compassHandlerAttached = true;
+  window.addEventListener("deviceorientationabsolute", handleOrientationEvent);
+  window.addEventListener("deviceorientation", handleOrientationEvent);
+  if (typeof DeviceOrientationEvent.requestPermission === "function") {
+    DeviceOrientationEvent.requestPermission().catch(() => {});
+  }
+}
+
 async function openCameraModal(target, fallbackInput) {
   cameraTarget = target;
+  lastCompassHeading = null;
+  if (target === "horizon") startCompassListener();
   cameraModal.hidden = false;
   cameraCaptureBtn.hidden = true;
   cameraStatus.textContent = "Starting your camera…";
@@ -239,6 +268,10 @@ function captureFromVideo() {
       runPlacementLookup({ imageDataUrl: downscaleImage(img, 768) });
     } else {
       applyPhoto(img);
+      if (lastCompassHeading !== null && isFinite(lastCompassHeading)) {
+        applyDetectedOrientation({ heading: lastCompassHeading });
+        recompute();
+      }
       tryLocationFromDevice(
         "Location set automatically from your device.",
         "Couldn't detect your location automatically — enter it above."
@@ -296,13 +329,41 @@ function tryLocationFromDevice(successMessage, failMessage) {
   );
 }
 
+// Applies whichever of heading/fov the photo's EXIF actually had (phones
+// vary in what they write), and says so — so the "how it works" text about
+// reading a compass app stops being necessary whenever this succeeds.
+function applyDetectedOrientation(info) {
+  const got = [];
+  if (typeof info.heading === "number") {
+    state.heading = Math.round(info.heading);
+    headingInput.value = state.heading;
+    got.push("facing direction");
+  }
+  if (typeof info.fov === "number") {
+    state.fov = info.fov;
+    fovInput.value = state.fov;
+    got.push("photo width");
+  }
+  if (got.length) saveState();
+  return got;
+}
+
 async function tryLocationFromFile(file) {
   try {
     const buf = await file.arrayBuffer();
     const gps = Exif.readGPS(buf);
     if (gps) {
-      setDetectedLocation(gps.lat, gps.lon, "Location detected from your photo.");
-      return;
+      const got = applyDetectedOrientation(gps);
+      if (typeof gps.lat === "number" && typeof gps.lon === "number") {
+        const extra = got.length ? ` (${got.join(" and ")} detected too — check they look right).` : "";
+        setDetectedLocation(gps.lat, gps.lon, `Location detected from your photo.${extra}`);
+        return;
+      }
+      if (got.length) {
+        locationStatus.textContent = `Photo had no location data, but detected ${got.join(" and ")} — enter your location above.`;
+        recompute();
+        return;
+      }
     }
   } catch {
     // fall through to the "couldn't find it" message below
