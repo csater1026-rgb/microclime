@@ -460,6 +460,9 @@ input[type="file"] {
 .hourly-detail[open] summary::before { transform: rotate(90deg); }
 .hourly-detail .panel-sub { padding: 0 16px; margin: 0 0 10px; }
 .hourly-detail .table-scroll { padding: 0 16px 16px; }
+.hourly-detail .field-row { padding: 0 16px; margin: 0 0 10px; }
+.hourly-detail .field-hint { padding: 0 16px; margin: 0 0 10px; }
+.hourly-detail .calibration-log { padding: 0 16px 16px; }
 
 .plant-care-body {
   padding: 0 16px 16px;

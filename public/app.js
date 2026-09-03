@@ -50,6 +50,7 @@ let state = loadState();
 // a y-fraction (0=top of photo, 1=bottom) or null where untouched.
 let trace = new Array(BUCKETS).fill(null);
 let photoImg = null;
+let plantAutoAnalyzedFor = null; // avoids re-running AI plant ID on the same photo
 
 const el = (id) => document.getElementById(id);
 
@@ -880,6 +881,11 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
     renderWhatif(sunHours, frostHours, baselineResult ? baselineResult.sunHours : null, baselineFrostHours);
     renderCommunity(frostHours);
     renderPlantCare(rows);
+    if (photoImg && photoImg !== plantAutoAnalyzedFor) {
+      plantAutoAnalyzedFor = photoImg;
+      plantCare.open = true; // surface the auto-identified plant without an extra click
+      handlePlantPhoto(photoImg);
+    }
     scheduleSummarize();
   } catch (err) {
     if (token !== recomputeToken) return;

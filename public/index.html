@@ -299,9 +299,9 @@
           <div id="plant-care-rule"></div>
 
           <div class="plant-photo-section">
-            <p class="plant-photo-lede">Want exact advice for what's actually growing here? AI will identify the plants, grass, or trees and tailor this using the real sun and heat data above.</p>
+            <p class="plant-photo-lede">AI automatically identifies what's growing here from your horizon photo and tailors advice using the real sun and heat data above — no extra step needed. Got a closer or different photo?</p>
             <div class="photo-source-row">
-              <button class="btn-secondary" id="plant-use-horizon-btn" type="button">Use my horizon photo</button>
+              <button class="btn-secondary" id="plant-use-horizon-btn" type="button">Re-check my horizon photo</button>
               <button class="btn-secondary" id="plant-take-photo-btn" type="button">Take a new photo</button>
               <button class="btn-secondary" id="plant-upload-photo-btn" type="button">Upload a file</button>
             </div>
@@ -341,22 +341,26 @@
     <section class="panel" id="calibrate-panel" hidden>
       <h2 class="panel-title"><span class="step-badge">4</span>Calibrate to your spot</h2>
       <p class="panel-sub">
-        The model above is a prediction. Log what actually happened here and
-        it gets more accurate for this exact spot every time — not a static
-        lookup table, a model that learns your yard.
+        Everything above already runs automatically from live weather and this
+        spot's real sun-hours — nothing to enter. This part is optional and
+        for later: after a night passes, come back and log what actually
+        happened, and the model learns a correction for your exact spot.
       </p>
-      <div class="field-row">
-        <div class="field">
-          <label for="observed-temp-input">Actual overnight low here (°F)</label>
-          <input type="number" id="observed-temp-input" placeholder="e.g. 29" />
+      <details class="hourly-detail" id="calibrate-details">
+        <summary>Log what actually happened overnight (optional)</summary>
+        <div class="field-row">
+          <div class="field">
+            <label for="observed-temp-input">Actual overnight low here (°F)</label>
+            <input type="number" id="observed-temp-input" placeholder="e.g. 29" />
+          </div>
+          <div class="field field-checkbox">
+            <label><input type="checkbox" id="observed-frost-input" /> Frost happened here</label>
+          </div>
+          <button class="btn-primary" id="save-observation-btn" type="button">Save observation</button>
         </div>
-        <div class="field field-checkbox">
-          <label><input type="checkbox" id="observed-frost-input" /> Frost happened here</label>
-        </div>
-        <button class="btn-primary" id="save-observation-btn" type="button">Save observation</button>
-      </div>
-      <p class="field-hint" id="calibration-status"></p>
-      <div class="calibration-log" id="calibration-log"></div>
+        <p class="field-hint" id="calibration-status"></p>
+        <div class="calibration-log" id="calibration-log"></div>
+      </details>
     </section>
 
     <section class="panel" id="spots-panel" hidden>
