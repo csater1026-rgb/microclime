@@ -255,6 +255,9 @@ body {
   margin: 4px 0 0;
   max-width: 480px;
 }
+.save-spot-status { font-weight: 600; }
+.save-spot-status.success { color: var(--good); }
+.save-spot-status.error { color: var(--danger); }
 
 .btn-secondary {
   background: var(--panel-3);

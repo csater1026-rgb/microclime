@@ -117,6 +117,7 @@ const whatifCompare = el("whatif-compare");
 const saveSpotRow = el("save-spot-row");
 const spotNameInput = el("spot-name-input");
 const saveSpotBtn = el("save-spot-btn");
+const saveSpotStatus = el("save-spot-status");
 const spotsPanel = el("spots-panel");
 const spotsList = el("spots-list");
 const communityPanel = el("community-panel");
@@ -383,6 +384,7 @@ function applyPhoto(img) {
   headingRow.hidden = false;
   whatifRow.hidden = false;
   saveSpotRow.hidden = false;
+  saveSpotStatus.textContent = "";
   baseline = null;
   resetBaselineBtn.hidden = true;
   saveBaselineBtn.textContent = 'Save as "how it is now"';
@@ -614,7 +616,8 @@ function renderSpots() {
 
 saveSpotBtn.addEventListener("click", () => {
   if (!resolvedTrace()) {
-    calibrationStatus.textContent = "Trace the horizon in the photo above before saving this spot.";
+    saveSpotStatus.className = "field-hint save-spot-status error";
+    saveSpotStatus.textContent = "Trace the horizon in the photo above before saving this spot.";
     return;
   }
   const name = spotNameInput.value.trim() || `Spot ${state.spots.length + 1}`;
@@ -630,6 +633,13 @@ saveSpotBtn.addEventListener("click", () => {
   saveState();
   spotNameInput.value = "";
   renderSpots();
+
+  // Real confirmation instead of a silent success, and fold away the
+  // heading/FOV/trace controls now that this spot is done — they'll
+  // reappear automatically for the next photo or when loading a spot.
+  saveSpotStatus.className = "field-hint save-spot-status success";
+  saveSpotStatus.textContent = `Saved "${name}" ✓ — see it in "Your yard's sun zones" below.`;
+  headingRow.hidden = true;
 });
 
 spotsList.addEventListener("click", (e) => {
@@ -655,6 +665,7 @@ spotsList.addEventListener("click", (e) => {
     headingRow.hidden = false;
     whatifRow.hidden = false;
     saveSpotRow.hidden = false;
+    saveSpotStatus.textContent = "";
     spotNameInput.value = spot.name;
     baseline = null;
     resetBaselineBtn.hidden = true;
