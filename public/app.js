@@ -685,7 +685,7 @@ saveSpotBtn.addEventListener("click", () => {
   // heading/FOV/trace controls now that this spot is done — they'll
   // reappear automatically for the next photo or when loading a spot.
   saveSpotStatus.className = "field-hint save-spot-status success";
-  saveSpotStatus.textContent = `Saved "${name}" ✓ — see it in "Your yard's sun zones" below.`;
+  saveSpotStatus.textContent = `Saved "${name}" ✓ — see it in "Your sun zones" below.`;
   headingRow.hidden = true;
 });
 
@@ -1117,8 +1117,16 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
     weatherStatus.textContent = "Live forecast loaded.";
     riskSummary.hidden = false;
     const parts = [];
-    if (frostHours > 0) parts.push(`<span class="sun-count" style="color:var(--danger)">${frostHours} hour${frostHours === 1 ? "" : "s"} of frost risk</span> at this exact spot tonight — colder here than the general forecast, based on how little sun and how calm/clear it is.`);
-    if (heatHours > 0) parts.push(`<span class="sun-count">${heatHours} hour${heatHours === 1 ? "" : "s"} of heat stress risk</span> — full sun during high heat.`);
+    const frostHourList = frostRiskHours(rows);
+    const hotHourList = hotSunHours(rows);
+    if (frostHourList.length > 0) {
+      const range = formatHourRange(frostHourList);
+      parts.push(`<span class="sun-count" style="color:var(--danger)">Frost risk ${range}</span> at this exact spot — colder here than the general forecast, based on how little sun and how calm/clear it is. Cover crops or bring in what you can before <b>${formatHour(Math.min(...frostHourList))}</b>.`);
+    }
+    if (hotHourList.length > 0) {
+      const range = formatHourRange(hotHourList);
+      parts.push(`<span class="sun-count">Heat stress risk ${range}</span> — full sun during high heat. Water beforehand so plants aren't dry when it hits.`);
+    }
     riskSummary.innerHTML = parts.length ? parts.join(" ") : "No elevated frost or heat risk detected for this spot on this date.";
 
     renderResults(rows, sunHours);

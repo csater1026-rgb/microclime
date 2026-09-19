@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Microclime — know your exact spot</title>
-  <meta name="description" content="Weather apps know your zip code. Microclime knows the exact corner of your yard — real sun-hours, frost risk, and what-if planting simulation for one specific spot." />
+  <meta name="description" content="Weather apps know your zip code. Microclime knows the exact corner of your garden or field — real sun-hours, frost risk, and what-if planting simulation for one specific spot." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff8a5c' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="./styles.css?v=7" />
 </head>
@@ -55,9 +55,10 @@
       </div>
       <p class="modal-sub">
         Weather apps report your whole zip code. Microclime figures out what
-        the sun and cold actually do at one exact spot in your yard — using
-        real astronomy and a photo you trace yourself, not a guess. Here's
-        what each part does, in order:
+        the sun and cold actually do at one exact spot in your garden or
+        field — using real astronomy and a photo you trace yourself, not a
+        guess. Built for gardeners and farmers who need more than a
+        zip-code-wide guess. Here's what each part does, in order:
       </p>
 
       <div class="intro-steps">
@@ -85,8 +86,8 @@
         <div class="intro-step">
           <span class="step-badge">4</span>
           <div>
-            <div class="intro-step-title">Plant &amp; grass burn risk</div>
-            <div class="intro-step-body">Real watering-time suggestions based on this spot's actual hot-sun hours. AI automatically identifies what's growing there straight from your horizon photo (even a wide yard shot with grass, trees, and shrubs together) and tailors advice to that species using your spot's real numbers — no extra photo or click needed, though you can swap in a closer one.</div>
+            <div class="intro-step-title">Plant &amp; crop burn risk</div>
+            <div class="intro-step-body">Real watering-time suggestions based on this spot's actual hot-sun hours. Take a close-up photo of what's actually growing there (a separate shot from your wide horizon photo) and AI identifies it and tailors advice to that species using your spot's real numbers.</div>
           </div>
         </div>
         <div class="intro-step">
@@ -106,8 +107,8 @@
         <div class="intro-step">
           <span class="step-badge">7</span>
           <div>
-            <div class="intro-step-title">Your yard's sun zones — and where to plant next</div>
-            <div class="intro-step-body">Save more than one spot and they're automatically grouped into Full sun, Partial sun, or Mostly shade. Then tell it a specific plant — by typing its name, or with one click reusing your yard photo — and it ranks all your saved spots by how well each one's real sun-hours actually fits that plant's needs.</div>
+            <div class="intro-step-title">Your sun zones — and where to plant next</div>
+            <div class="intro-step-body">Save more than one spot across your garden, greenhouse, or field and they're automatically grouped into Full sun, Partial sun, or Mostly shade. Then tell it a specific plant or crop — by typing its name, or with a close-up photo — and it ranks all your saved spots by how well each one's real sun-hours actually fits that plant's needs.</div>
           </div>
         </div>
         <div class="intro-step">
@@ -141,11 +142,13 @@
   <main class="main" id="main">
     <section class="hero">
       <div class="hero-text">
-        <h1>Your yard has its own weather.</h1>
+        <h1>Every plot has its own weather.</h1>
         <p class="hero-sub">
           Weather apps report your whole zip code. Microclime maps the sun,
-          shade, and frost risk for one exact spot — using a photo of your
-          real horizon, not a generic average.
+          shade, and frost risk for one exact spot in your garden or field —
+          using a photo of your real horizon, not a generic average. Built
+          for gardeners and farmers who need more precision than a
+          zip-code-wide forecast gives them.
         </p>
       </div>
       <div class="hero-art" aria-hidden="true">
@@ -267,7 +270,7 @@
           <input type="text" id="spot-name-input" placeholder="e.g. Back corner, Front bed" />
         </div>
         <button class="btn-primary" id="save-spot-btn" type="button">Save this spot</button>
-        <p class="field-hint">Comparing more than one spot in your yard? Trace each one and save it here to build a map of your whole yard's sun zones.</p>
+        <p class="field-hint">Comparing more than one spot in your garden or field? Trace each one and save it here to build a map of all your sun zones.</p>
         <p class="field-hint save-spot-status" id="save-spot-status"></p>
       </div>
     </section>
@@ -367,7 +370,7 @@
     </section>
 
     <section class="panel" id="spots-panel" hidden>
-      <h2 class="panel-title"><span class="step-badge">5</span>Your yard's sun zones</h2>
+      <h2 class="panel-title"><span class="step-badge">5</span>Your sun zones</h2>
       <p class="panel-sub">Every spot you've saved, grouped by how much sun it actually gets — so you know what to plant where.</p>
       <div class="spots-list" id="spots-list"></div>
 
