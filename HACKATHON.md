@@ -34,10 +34,20 @@ future Claude session working on this repo. Read this first.
 
 ## This project's status against those requirements
 
-- **Live site:** ✅ https://microclime-3emkrlicx-csater1026-rgbs-projects.vercel.app/
-  (confirm this URL is still current before final submission — Vercel
-  preview URLs can change on redeploy; check the project's production
-  domain in the Vercel dashboard).
+- **Live site:** ✅ https://microclime.vercel.app
+  (production domain; the old `*.vercel.app` preview URL is SSO-locked).
+
+## Agent split (Claude Code + Cursor, same night)
+
+Claude Code (`72f04b7`): stopped auto plant-ID on the wide horizon photo;
+close-up only; typed plant name is the reliable placement path; neighborhood
+map collapsed as a concept preview.
+
+Cursor (this pass): make the photo pay off (sun-path overlay + a plain
+"X hours / full-sun|partial|shade" verdict), replace broken plant-ID as
+the main watering path with a tap-to-pick plant list that always works,
+and hide heading/FOV/what-if jargon behind optional details. Do not
+reintroduce "use my yard photo" for plant ID.
 - **Repo:** ✅ `csater1026-rgb/microclime` (this repo), public.
 - **Demo video:** In progress as of 2026-09-19. A full narrated walkthrough
   (~3:56, under the 5-minute cap) already exists, built via a scripted

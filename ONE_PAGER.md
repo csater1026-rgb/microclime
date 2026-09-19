@@ -1,6 +1,6 @@
 # Microclime
 
-**Your yard has its own weather.**
+**Your garden has its own weather.**
 
 NextStep Hacks 2026 — theme: Earth Forward
 Built by Christian Saterfield
@@ -10,7 +10,7 @@ Built by Christian Saterfield
 ## The problem
 
 Weather apps report the forecast for your whole zip code. They have no idea
-that the back corner of your yard is shaded by a neighbor's tree until 11am,
+that the back corner of your garden is shaded by a neighbor's tree until 11am,
 or that a specific spot sits in a cold trap that frosts hours before the
 official forecast does. People lose plants, waste water, and plant in the
 wrong place because the only weather data they have access to isn't actually
@@ -18,7 +18,7 @@ about their spot.
 
 ## What Microclime does
 
-Point your phone at one exact spot in your yard and Microclime tells you,
+Point your phone at one exact spot in your garden and Microclime tells you,
 hour by hour, what the sun and cold actually do there — not what they do
 across your whole zip code.
 
@@ -36,7 +36,7 @@ across your whole zip code.
    the trace to test an idea — add a bump for a tree you're considering
    planting, flatten a spot for one you'd trim back — and see exactly what
    it would change before you touch a shovel.
-5. **Multi-zone mapping.** Save several spots around your yard and they're
+5. **Multi-zone mapping.** Save several spots around your garden and they're
    automatically grouped into Full sun / Partial sun / Mostly shade zones,
    each with a real planting suggestion.
 6. **Neighborhood microclimate map (concept demo).** If people nearby used
@@ -70,7 +70,7 @@ No login. No accounts. Everything lives in your browser.
 Two earlier ideas for this hackathon — and a plant-diagnosis app idea after
 that — all turned out to already exist as mature, funded products once we
 actually checked. Sun-mapping for gardens exists too (apps like SASHA and
-Coffee in the Sun already do "how much sun does my yard get"), so we don't
+Coffee in the Sun already do "how much sun does my garden get"), so we don't
 claim that piece is new. What we built on top of it is: a frost/heat model
 that adjusts for the specific spot's actual conditions, a self-calibrating
 correction loop, and a what-if simulator for testing planting decisions
@@ -138,5 +138,5 @@ make the underlying decisions.
 
 ## Try it
 
-Live: https://microclime-3emkrlicx-csater1026-rgbs-projects.vercel.app/
+Live: https://microclime.vercel.app
 Source: https://github.com/csater1026-rgb/microclime

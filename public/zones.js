@@ -1,7 +1,7 @@
 // Multi-zone classification — the real "clustering" step from Phase 5:
 // bucket each saved spot by its actual computed sun-hours into a plain-
 // language zone with a genuinely useful planting suggestion, instead of
-// treating every spot in the yard as the same.
+// treating every spot in the garden as the same.
 
 const Zones = (() => {
   function classify(sunHours) {

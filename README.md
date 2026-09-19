@@ -2,15 +2,15 @@
 
 **NextStep Hacks 2026 submission (theme: Earth Forward).**
 
-Live: https://microclime-3emkrlicx-csater1026-rgbs-projects.vercel.app/
+Live: https://microclime.vercel.app
 
 > Weather apps report your whole zip code. Microclime maps the sun, shade,
-> and frost risk for one exact spot in your yard — using a photo of your
+> and frost risk for one exact spot in your garden — using a photo of your
 > real horizon, not a generic average — and gets smarter the more you use it.
 
 ## The idea
 
-The back corner of your yard, shaded by a neighbor's tree until 11am, does
+The back corner of your garden, shaded by a neighbor's tree until 11am, does
 not experience the same weather as the official forecast for your zip code.
 Microclime uses your phone camera to trace the real horizon at one specific
 spot, combines it with actual solar-position math to compute that spot's

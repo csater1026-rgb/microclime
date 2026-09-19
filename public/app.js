@@ -20,6 +20,7 @@ function defaultState() {
     log: [], // calibration observations: { date, observedC, predictedC, frost }
     spots: [], // saved zones: { id, name, lat, lon, trace, heading, fov }
     seenIntro: false,
+    plantId: null,
   };
 }
 
@@ -125,6 +126,15 @@ const resetDataBtn = el("reset-data-btn");
 const introModal = el("intro-modal");
 const introClose = el("intro-close");
 const introStartBtn = el("intro-start-btn");
+const facingRow = el("facing-row");
+const facingChips = el("facing-chips");
+const photoCaption = el("photo-caption");
+const verdictHours = el("verdict-hours");
+const verdictLabel = el("verdict-label");
+const verdictBody = el("verdict-body");
+const todayAction = el("today-action");
+const plantPicker = el("plant-picker");
+const plantAdvice = el("plant-advice");
 
 let currentRows = [];
 let currentSunHours = 0;
@@ -144,6 +154,21 @@ function initInputs() {
   dateInput.value = state.date;
   headingInput.value = state.heading;
   fovInput.value = state.fov;
+  syncFacingChips();
+}
+
+function nearestCardinal(heading) {
+  const h = ((heading % 360) + 360) % 360;
+  const opts = [0, 90, 180, 270];
+  return opts.reduce((best, n) => (Math.abs(n - h) < Math.abs(best - h) ? n : best), 0);
+}
+
+function syncFacingChips() {
+  if (!facingChips) return;
+  const active = nearestCardinal(state.heading);
+  facingChips.querySelectorAll(".chip").forEach((btn) => {
+    btn.classList.toggle("active", Number(btn.dataset.heading) === active);
+  });
 }
 
 function hasLocation() {
@@ -429,6 +454,8 @@ function applyPhoto(img) {
   canvas.height = Math.round((wrapWidth * img.height) / img.width);
   canvasWrap.hidden = false;
   headingRow.hidden = false;
+  if (facingRow) facingRow.hidden = false;
+  if (photoCaption) photoCaption.hidden = false;
   whatifRow.hidden = false;
   saveSpotRow.hidden = false;
   saveSpotStatus.textContent = "";
@@ -439,9 +466,12 @@ function applyPhoto(img) {
   const detected = detectHorizonTrace();
   if (detected) {
     trace = detected;
-    traceStatus.textContent = "Horizon auto-detected from the photo — drag any point to correct it.";
+    traceStatus.textContent = "We traced what blocks the sun. Drag the line if a tree or roof looks off.";
   }
   drawCanvas();
+  if (!hasLocation()) {
+    locationStatus.textContent = "Tap Use my location so we can place the sun. Without it we can't count today's hours.";
+  }
   recompute();
 }
 
@@ -600,7 +630,7 @@ resetBaselineBtn.addEventListener("click", () => {
 // --- Saved spots (Phase 5) ---
 //
 // A named snapshot of a traced horizon (trace + heading + fov + location),
-// persisted so multiple spots in the same yard can be compared side by
+// persisted so multiple spots in the same garden can be compared side by
 // side. The photo itself isn't saved (too large for localStorage) — only
 // the traced horizon, which is all the math actually needs.
 
@@ -847,8 +877,21 @@ placementFileInput.addEventListener("change", () => loadPlacementPhotoFrom(place
 headingInput.addEventListener("input", () => {
   state.heading = ((parseInt(headingInput.value, 10) || 0) % 360 + 360) % 360;
   saveState();
+  syncFacingChips();
   recompute();
 });
+
+if (facingChips) {
+  facingChips.addEventListener("click", (e) => {
+    const btn = e.target.closest(".chip");
+    if (!btn) return;
+    state.heading = Number(btn.dataset.heading);
+    headingInput.value = state.heading;
+    saveState();
+    syncFacingChips();
+    recompute();
+  });
+}
 fovInput.addEventListener("input", () => {
   state.fov = Math.min(120, Math.max(20, parseInt(fovInput.value, 10) || 60));
   saveState();
@@ -894,6 +937,55 @@ function drawCanvas() {
   ctx.lineTo(canvas.width, canvas.height / 2);
   ctx.stroke();
   ctx.setLineDash([]);
+
+  drawSunPathOnPhoto();
+}
+
+function sunPointOnPhoto(azimuth, elevation) {
+  if (elevation <= 0) return null;
+  const rel = angleDiff(azimuth, state.heading);
+  if (Math.abs(rel) > state.fov / 2) return null;
+  const xFrac = 0.5 + rel / state.fov;
+  const yFrac = 0.5 - elevation / VERTICAL_FOV;
+  if (xFrac < 0 || xFrac > 1 || yFrac < -0.08 || yFrac > 1.05) return null;
+  return { x: xFrac * canvas.width, y: Math.max(8, Math.min(canvas.height - 8, yFrac * canvas.height)) };
+}
+
+function drawSunPathOnPhoto() {
+  if (!currentRows.length) return;
+  const points = [];
+  for (const r of currentRows) {
+    const pt = sunPointOnPhoto(r.azimuth, r.elevation);
+    if (!pt) continue;
+    points.push({ ...pt, row: r });
+  }
+  if (points.length < 1) return;
+
+  ctx.beginPath();
+  ctx.strokeStyle = "rgba(255, 185, 140, 0.85)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([3, 5]);
+  points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  for (const p of points) {
+    const sun = p.row.status === "sun";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+    ctx.fillStyle = sun ? "#ff8a5c" : "rgba(253,246,239,0.92)";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = sun ? "#c45a2c" : "#7c5cb8";
+    ctx.stroke();
+
+    if (p.row.h === 8 || p.row.h === 12 || p.row.h === 16) {
+      ctx.fillStyle = "rgba(43,31,34,0.85)";
+      ctx.font = "600 11px -apple-system, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(formatHour(p.row.h).replace(":00 ", ""), p.x, p.y - 10);
+    }
+  }
 }
 
 // --- Blocked-elevation lookup ---
@@ -1053,10 +1145,12 @@ function recompute() {
 
   currentRows = rows;
   currentSunHours = sunHours;
+  drawCanvas();
   renderResults(rows, sunHours);
+  renderPlantAdvice();
   renderCalibrationLog();
   renderSpots();
-  calibratePanel.hidden = false;
+  if (calibratePanel) calibratePanel.hidden = true;
   loadWeatherAndRisk(token, rows, sunHours, baselineResult);
 }
 
@@ -1115,25 +1209,14 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
     }
 
     weatherStatus.textContent = "Live forecast loaded.";
-    riskSummary.hidden = false;
-    const parts = [];
-    const frostHourList = frostRiskHours(rows);
-    const hotHourList = hotSunHours(rows);
-    if (frostHourList.length > 0) {
-      const range = formatHourRange(frostHourList);
-      parts.push(`<span class="sun-count" style="color:var(--danger)">Frost risk ${range}</span> at this exact spot — colder here than the general forecast, based on how little sun and how calm/clear it is. Cover crops or bring in what you can before <b>${formatHour(Math.min(...frostHourList))}</b>.`);
-    }
-    if (hotHourList.length > 0) {
-      const range = formatHourRange(hotHourList);
-      parts.push(`<span class="sun-count">Heat stress risk ${range}</span> — full sun during high heat. Water beforehand so plants aren't dry when it hits.`);
-    }
-    riskSummary.innerHTML = parts.length ? parts.join(" ") : "No elevated frost or heat risk detected for this spot on this date.";
+    riskSummary.hidden = true;
+    renderTodayAction(rows, sunHours, frostHours, heatHours);
+    renderPlantAdvice();
 
     renderResults(rows, sunHours);
     renderWhatif(sunHours, frostHours, baselineResult ? baselineResult.sunHours : null, baselineFrostHours);
     renderCommunity(frostHours);
     renderPlantCare(rows);
-    scheduleSummarize();
   } catch (err) {
     if (token !== recomputeToken) return;
     weatherStatus.textContent = `Forecast unavailable for this date (${err.message}). Live forecasts only cover the near-term window — sun-hours above are still accurate.`;
@@ -1384,7 +1467,7 @@ const DEMO_NEIGHBORS = [
 ];
 
 function renderCommunity(yourFrostHours) {
-  communityPanel.hidden = false;
+  if (communityPanel) communityPanel.hidden = true;
   const rows = [
     { name: "You (this spot)", hours: yourFrostHours, you: true },
     ...DEMO_NEIGHBORS.map((n) => ({ name: n.name, hours: Math.max(0, yourFrostHours + n.offset), you: false })),
@@ -1434,10 +1517,95 @@ function renderWhatif(sunHours, frostHours, baselineSunHours, baselineFrostHours
   whatifCompare.innerHTML = parts.join("");
 }
 
+function sunCategory(sunHours) {
+  if (sunHours >= 6) return { label: "Full sun", grow: "Good for tomatoes, peppers, and most vegetables." };
+  if (sunHours >= 3) return { label: "Partial sun", grow: "Good for herbs, leafy greens, and many flowers. Tight for tomatoes." };
+  return { label: "Mostly shade", grow: "Good for hostas and other shade plants. Not enough sun for tomatoes or peppers." };
+}
+
+function renderVerdict(rows, sunHours) {
+  if (!verdictHours) return;
+  const cat = sunCategory(sunHours);
+  verdictHours.textContent = `${sunHours} hr`;
+  verdictLabel.textContent = cat.label;
+  const sunRows = rows.filter((r) => r.status === "sun");
+  const shadeRows = rows.filter((r) => r.status === "shade");
+  const missing = rows.some((r) => r.status === "no-data");
+  let when = "";
+  if (sunRows.length) {
+    const first = sunRows[0].h;
+    const last = sunRows[sunRows.length - 1].h;
+    when = ` Direct sun on this spot is about ${formatHour(first)} to ${formatHour(last + 1)}.`;
+  } else if (shadeRows.length) {
+    when = " Everything in your photo keeps this spot in shade during daylight.";
+  }
+  let why = "";
+  if (shadeRows.length) {
+    why = ` The orange line is why: trees, a fence, or a roof in the photo block the sun for ${shadeRows.length} daylight hour${shadeRows.length === 1 ? "" : "s"}.`;
+  }
+  if (missing) {
+    why += " Hours when the sun is off-camera are left blank on the strip below.";
+  }
+  if (!resolvedTrace()) {
+    verdictBody.textContent = "Add a garden photo so we can see what blocks the sun here.";
+    return;
+  }
+  verdictBody.textContent = `This spot gets ${sunHours} hour${sunHours === 1 ? "" : "s"} of direct sun today. That's ${cat.label.toLowerCase()}.${when}${why} ${cat.grow}`;
+}
+
+function renderTodayAction(rows, sunHours, frostHours, heatHours) {
+  if (!todayAction) return;
+  const burn = PlantCare.assess(rows);
+  if (frostHours > 0) {
+    const frost = frostRiskHours(rows);
+    todayAction.className = "today-action frost";
+    todayAction.textContent = `Frost risk tonight${formatHourRange(frost) ? ` (${formatHourRange(frost)})` : ""}. Cover tender plants or bring them in.`;
+  } else if (heatHours > 0 && burn.waterBefore !== null) {
+    todayAction.className = "today-action heat";
+    todayAction.textContent = `Hot sun today. Water before ${formatHour(burn.waterBefore)}, then again after ${formatHour(burn.waterAfter)}.`;
+  } else {
+    todayAction.className = "today-action";
+    todayAction.textContent = burn.summary;
+  }
+  todayAction.hidden = false;
+}
+
+function renderPlantAdvice() {
+  if (!plantAdvice) return;
+  const selected = PlantCare.PLANTS.find((p) => p.id === state.plantId);
+  if (!selected) {
+    plantAdvice.innerHTML = "Pick what you want to grow. We'll say if this spot's sun hours actually fit.";
+    return;
+  }
+  if (!hasLocation()) {
+    plantAdvice.textContent = "Set your location (or take a photo) so we can count today's sun hours first.";
+    return;
+  }
+  plantAdvice.innerHTML = PlantCare.advise(selected, currentSunHours, PlantCare.assess(currentRows));
+}
+
+function setupPlantPicker() {
+  if (!plantPicker) return;
+  plantPicker.innerHTML = PlantCare.PLANTS.map((p) =>
+    `<button type="button" class="chip${state.plantId === p.id ? " active" : ""}" data-plant="${p.id}">${p.label}</button>`
+  ).join("");
+  plantPicker.addEventListener("click", (e) => {
+    const btn = e.target.closest(".chip");
+    if (!btn) return;
+    state.plantId = btn.dataset.plant;
+    saveState();
+    plantPicker.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === btn));
+    renderPlantAdvice();
+  });
+}
+
 function renderResults(rows, sunHours) {
   resultsPanel.hidden = false;
-  const untraced = rows.some((r) => r.status === "no-data");
-  resultsSummary.innerHTML = `<span class="sun-count">${sunHours} hour${sunHours === 1 ? "" : "s"}</span> of direct sun today at this exact spot${untraced ? " (some hours have no horizon data — that direction wasn't in your photo)" : ""}.`;
+  renderVerdict(rows, sunHours);
+  if (resultsSummary) {
+    resultsSummary.hidden = true;
+    resultsSummary.textContent = "";
+  }
 
   hourStrip.innerHTML = "";
   for (const r of rows) {
@@ -1542,6 +1710,7 @@ function setupSideNav() {
 }
 setupSideNav();
 
+setupPlantPicker();
 initInputs();
 recompute();
 renderSpots();
