@@ -2,7 +2,7 @@
 
 **NextStep Hacks 2026 submission (theme: Earth Forward).**
 
-Live: https://microclime-3emkrlicx-csater1026-rgbs-projects.vercel.app/
+Live: https://microclime.vercel.app
 
 > Weather apps report your whole zip code. Microclime maps the sun, shade,
 > and frost risk for one exact spot in your yard — using a photo of your

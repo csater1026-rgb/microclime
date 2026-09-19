@@ -138,5 +138,5 @@ make the underlying decisions.
 
 ## Try it
 
-Live: https://microclime-3emkrlicx-csater1026-rgbs-projects.vercel.app/
+Live: https://microclime.vercel.app
 Source: https://github.com/csater1026-rgb/microclime

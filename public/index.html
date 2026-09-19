@@ -6,7 +6,7 @@
   <title>Microclime — know your exact spot</title>
   <meta name="description" content="Weather apps know your zip code. Microclime knows the exact corner of your yard — real sun-hours, frost risk, and what-if planting simulation for one specific spot." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff8a5c' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1'/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="./styles.css?v=7" />
+  <link rel="stylesheet" href="./styles.css?v=8" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -50,78 +50,41 @@
   <div class="modal-overlay" id="intro-modal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="intro-heading">
       <div class="modal-head">
-        <h2 id="intro-heading">How Microclime works</h2>
+        <h2 id="intro-heading">Three steps</h2>
         <button class="icon-close" id="intro-close" aria-label="Close">✕</button>
       </div>
       <p class="modal-sub">
-        Weather apps report your whole zip code. Microclime figures out what
-        the sun and cold actually do at one exact spot in your yard — using
-        real astronomy and a photo you trace yourself, not a guess. Here's
-        what each part does, in order:
+        Weather apps only know your zip code. This tells you how much sun
+        one exact spot in your yard actually gets.
       </p>
 
       <div class="intro-steps">
         <div class="intro-step">
           <span class="step-badge">1</span>
           <div>
-            <div class="intro-step-title">Where is this spot?</div>
-            <div class="intro-step-body">Set the exact location and a date — or skip this. Taking a live photo in step 2 grabs your device's location automatically, and uploading an existing photo reads the location straight out of it if it has any. This is what the sun-position math runs against.</div>
+            <div class="intro-step-title">Photo of the spot</div>
+            <div class="intro-step-body">Stand where you want to plant and take a picture looking out. Trees, fences, and roofs in that photo are what block the sun.</div>
           </div>
         </div>
         <div class="intro-step">
           <span class="step-badge">2</span>
           <div>
-            <div class="intro-step-title">Trace your real horizon</div>
-            <div class="intro-step-body">Take a photo with a real in-browser camera (works on phones and laptops) or upload one — the skyline (where trees, roofs, or fences actually block the sky) gets traced automatically from the photo's pixels, and you can drag any point to fix it if it got something wrong. Which way you were facing and how wide the shot is get filled in automatically too (from the photo's metadata, or your phone's live compass), so there's usually nothing to type. This is what makes the sun-hours specific to your spot instead of a generic estimate.</div>
+            <div class="intro-step-title">See the sun on your photo</div>
+            <div class="intro-step-body">We draw the skyline and today's sun path on the picture. If a sun-dot sits below the line, that hour is shade.</div>
           </div>
         </div>
         <div class="intro-step">
           <span class="step-badge">3</span>
           <div>
-            <div class="intro-step-title">Your spot's real sun-hours</div>
-            <div class="intro-step-body">Combines the sun's real position with your traced horizon to show, hour by hour, whether that spot is in direct sun or shade — plus live frost and heat-stress risk with the actual clock times, not just a count. An AI-written plain-English summary leads the way; the full hourly table stays one click away if you want to check the numbers.</div>
-          </div>
-        </div>
-        <div class="intro-step">
-          <span class="step-badge">4</span>
-          <div>
-            <div class="intro-step-title">Plant &amp; grass burn risk</div>
-            <div class="intro-step-body">Real watering-time suggestions based on this spot's actual hot-sun hours. AI automatically identifies what's growing there straight from your horizon photo (even a wide yard shot with grass, trees, and shrubs together) and tailors advice to that species using your spot's real numbers — no extra photo or click needed, though you can swap in a closer one.</div>
-          </div>
-        </div>
-        <div class="intro-step">
-          <span class="step-badge">5</span>
-          <div>
-            <div class="intro-step-title">Calibrate to your spot</div>
-            <div class="intro-step-body">Optional, and for later: come back after a night passes and log what actually happened (pre-filled with tonight's predicted low so there's less to type — just correct it if reality was different) and the model learns a correction for your exact spot, getting more accurate the more you use it.</div>
-          </div>
-        </div>
-        <div class="intro-step">
-          <span class="step-badge">6</span>
-          <div>
-            <div class="intro-step-title">What if you made a change?</div>
-            <div class="intro-step-body">Save your horizon as "how it is now," then edit the trace to test an idea — like planting or removing a tree — and see exactly how it would change your sun-hours and frost risk before you touch a shovel.</div>
-          </div>
-        </div>
-        <div class="intro-step">
-          <span class="step-badge">7</span>
-          <div>
-            <div class="intro-step-title">Your yard's sun zones — and where to plant next</div>
-            <div class="intro-step-body">Save more than one spot and they're automatically grouped into Full sun, Partial sun, or Mostly shade. Then tell it a specific plant — by typing its name, or with one click reusing your yard photo — and it ranks all your saved spots by how well each one's real sun-hours actually fits that plant's needs.</div>
-          </div>
-        </div>
-        <div class="intro-step">
-          <span class="step-badge">8</span>
-          <div>
-            <div class="intro-step-title">Your block's microclimate map</div>
-            <div class="intro-step-body">A preview of what a shared neighborhood map would look like if people nearby used Microclime too — shown with demo data, since it needs more than one household to be real.</div>
+            <div class="intro-step-title">What to grow and when to water</div>
+            <div class="intro-step-body">You get hours of sun and advice for a plant you pick. No guessing the species from a wide yard shot.</div>
           </div>
         </div>
       </div>
 
-      <p class="modal-sub">No accounts, no login — everything you save lives only in this browser.</p>
+      <p class="modal-sub">No accounts. Photos stay on this device.</p>
       <div class="modal-actions">
-        <button class="btn-primary" id="intro-start-btn" type="button">Get started</button>
+        <button class="btn-primary" id="intro-start-btn" type="button">Got it</button>
       </div>
     </div>
   </div>
@@ -129,23 +92,18 @@
   <div class="layout">
     <aside class="side-nav" aria-label="Sections">
       <nav>
-        <a class="side-nav-link" href="#location-panel" data-target="location-panel"><span class="step-badge">1</span>Location</a>
-        <a class="side-nav-link" href="#horizon-panel" data-target="horizon-panel"><span class="step-badge">2</span>Horizon</a>
-        <a class="side-nav-link" href="#results-panel" data-target="results-panel"><span class="step-badge">3</span>Sun-hours</a>
-        <a class="side-nav-link" href="#calibrate-panel" data-target="calibrate-panel"><span class="step-badge">4</span>Calibrate</a>
-        <a class="side-nav-link" href="#spots-panel" data-target="spots-panel"><span class="step-badge">5</span>Sun zones</a>
-        <a class="side-nav-link" href="#community-panel" data-target="community-panel"><span class="step-badge">6</span>Neighborhood</a>
+        <a class="side-nav-link" href="#horizon-panel" data-target="horizon-panel"><span class="step-badge">1</span>Photo</a>
+        <a class="side-nav-link" href="#results-panel" data-target="results-panel"><span class="step-badge">2</span>Today's sun</a>
+        <a class="side-nav-link" href="#spots-panel" data-target="spots-panel"><span class="step-badge">3</span>Saved spots</a>
       </nav>
     </aside>
 
   <main class="main" id="main">
     <section class="hero">
       <div class="hero-text">
-        <h1>Your yard has its own weather.</h1>
+        <h1>How much sun does this spot actually get?</h1>
         <p class="hero-sub">
-          Weather apps report your whole zip code. Microclime maps the sun,
-          shade, and frost risk for one exact spot — using a photo of your
-          real horizon, not a generic average.
+          Take one photo. See the hours of sun, what will grow here, and when to water.
         </p>
       </div>
       <div class="hero-art" aria-hidden="true">
@@ -194,7 +152,8 @@
     </section>
 
     <section class="panel" id="location-panel">
-      <h2 class="panel-title"><span class="step-badge">1</span>Where is this spot?</h2>
+      <h2 class="panel-title"><span class="step-badge">1</span>Your location</h2>
+      <p class="panel-sub">Used to place the sun in the sky. A live photo can fill this in for you.</p>
       <div class="field-row">
         <div class="field">
           <label for="lat-input">Latitude</label>
@@ -217,20 +176,15 @@
     </section>
 
     <section class="panel" id="horizon-panel">
-      <h2 class="panel-title"><span class="step-badge">2</span>Trace your real horizon</h2>
+      <h2 class="panel-title"><span class="step-badge">1</span>Photo of the spot</h2>
       <p class="panel-sub">
-        Take a photo from the exact spot, holding your phone level and
-        pointed at one direction. The skyline — where trees, roofs, or
-        fences block the sky — gets traced automatically from the photo;
-        drag any point to correct it if it got something wrong. Enter your
-        location above, OR just take or upload a photo below — a live photo
-        grabs your device's location automatically, and an uploaded photo
-        reads its location from the photo itself if it has any.
+        Stand where you want to plant and take a picture looking out.
+        Trees, fences, and roofs in the photo are what block the sun here.
       </p>
 
       <div class="photo-source-row">
-        <button class="btn-secondary" id="take-photo-btn" type="button">Take a photo</button>
-        <button class="btn-secondary" id="upload-photo-btn" type="button">Upload a file</button>
+        <button class="btn-primary" id="take-photo-btn" type="button">Take a photo</button>
+        <button class="btn-secondary" id="upload-photo-btn" type="button">Upload a photo</button>
       </div>
       <input type="file" id="camera-input" accept="image/*" capture="environment" hidden />
       <input type="file" id="file-input" accept="image/*" hidden />
@@ -238,28 +192,49 @@
       <div class="canvas-wrap" id="canvas-wrap" hidden>
         <canvas id="trace-canvas"></canvas>
       </div>
+      <p class="photo-caption" id="photo-caption" hidden>
+        Orange line = what blocks the sun. Dots = where the sun sits each hour today.
+        A filled dot is sun on this spot. An empty dot is shade.
+      </p>
       <p class="field-hint" id="trace-status"></p>
 
-      <div class="field-row" id="heading-row" hidden>
-        <div class="field">
-          <label for="heading-input">Which way was your phone facing?</label>
-          <input type="number" id="heading-input" min="0" max="359" value="180" />
-          <span class="field-hint" id="heading-hint">In degrees, like a compass: 0 = North, 90 = East, 180 = South, 270 = West. Filled in automatically when your phone's compass or photo metadata has it — check it looks right, or open the Compass app and type the number it shows if not.</span>
+      <div class="facing-row" id="facing-row" hidden>
+        <p class="facing-label">Which way were you looking?</p>
+        <div class="chip-row" id="facing-chips">
+          <button type="button" class="chip" data-heading="0">North</button>
+          <button type="button" class="chip" data-heading="90">East</button>
+          <button type="button" class="chip" data-heading="180">South</button>
+          <button type="button" class="chip" data-heading="270">West</button>
         </div>
-        <div class="field">
-          <label for="fov-input">How wide is the photo? (°)</label>
-          <input type="number" id="fov-input" min="20" max="120" value="60" />
-          <span class="field-hint" id="fov-hint">Auto-detected from the photo when possible. Leave this at 60 unless you know your phone's camera is different — it's right for most phones.</span>
-        </div>
-        <button class="btn-secondary" id="auto-detect-btn" type="button">Re-run auto-detect</button>
-        <button class="btn-secondary" id="clear-trace-btn" type="button">Clear trace</button>
+        <p class="field-hint">Most backyards face south. Change this if you were looking a different way, or the sun path will be off.</p>
       </div>
 
-      <div class="field-row" id="whatif-row" hidden>
-        <button class="btn-secondary" id="save-baseline-btn" type="button">Save as "how it is now"</button>
-        <button class="btn-secondary" id="reset-baseline-btn" type="button" hidden>Reset to "how it is now"</button>
-        <p class="field-hint" id="whatif-hint">Trace your horizon as it really looks first. Then hit this button, and try editing the trace to test an idea — like adding a bump where a new tree would grow, or flattening a spot where you'd trim one back — to see what it would actually change.</p>
-      </div>
+      <details class="more-tools">
+        <summary>Photo didn't look right?</summary>
+        <div class="field-row" id="heading-row" hidden>
+          <div class="field">
+            <label for="heading-input">Facing (degrees)</label>
+            <input type="number" id="heading-input" min="0" max="359" value="180" />
+            <span class="field-hint" id="heading-hint">0 North, 90 East, 180 South, 270 West.</span>
+          </div>
+          <div class="field">
+            <label for="fov-input">Photo width (°)</label>
+            <input type="number" id="fov-input" min="20" max="120" value="60" />
+            <span class="field-hint" id="fov-hint">60 is right for most phones.</span>
+          </div>
+          <button class="btn-secondary" id="auto-detect-btn" type="button">Re-trace skyline</button>
+          <button class="btn-secondary" id="clear-trace-btn" type="button">Clear line</button>
+        </div>
+      </details>
+
+      <details class="more-tools" id="whatif-details">
+        <summary>Optional: pretend you added or trimmed a tree</summary>
+        <div class="field-row" id="whatif-row" hidden>
+          <button class="btn-secondary" id="save-baseline-btn" type="button">Save how it looks now</button>
+          <button class="btn-secondary" id="reset-baseline-btn" type="button" hidden>Undo pretend change</button>
+          <p class="field-hint" id="whatif-hint">Save the line, then drag it to test an idea. This is optional.</p>
+        </div>
+      </details>
 
       <div class="field-row" id="save-spot-row" hidden>
         <div class="field">
@@ -273,29 +248,45 @@
     </section>
 
     <section class="panel" id="results-panel" hidden>
-      <h2 class="panel-title"><span class="step-badge">3</span>Your spot's real sun-hours</h2>
+      <h2 class="panel-title"><span class="step-badge">2</span>What this photo means</h2>
+
+      <div class="verdict" id="verdict-card">
+        <div class="verdict-top">
+          <div class="verdict-hours" id="verdict-hours">—</div>
+          <div class="verdict-label" id="verdict-label"></div>
+        </div>
+        <p class="verdict-body" id="verdict-body">Add a photo and your location to see today's sun at this spot.</p>
+      </div>
 
       <div class="hour-strip" id="hour-strip" aria-label="Sun exposure by hour"></div>
       <div class="hour-legend">
-        <span class="hour-legend-item"><span class="hour-legend-swatch sun"></span>Direct sun</span>
-        <span class="hour-legend-item"><span class="hour-legend-swatch shade"></span>Shade</span>
+        <span class="hour-legend-item"><span class="hour-legend-swatch sun"></span>Sun on this spot</span>
+        <span class="hour-legend-item"><span class="hour-legend-swatch shade"></span>Blocked by your photo</span>
         <span class="hour-legend-item"><span class="hour-legend-swatch night"></span>Night</span>
         <span class="hour-legend-item"><span class="hour-legend-swatch frost"></span>Frost risk</span>
       </div>
 
       <p class="weather-status" id="weather-status"></p>
+      <div class="today-action" id="today-action" hidden></div>
 
       <div class="ai-summary" id="ai-summary" hidden></div>
       <div class="summarize-row" id="summarize-row" hidden>
         <button class="btn-secondary" id="summarize-btn" type="button">Regenerate summary</button>
       </div>
 
-      <p class="results-summary" id="results-summary"></p>
+      <p class="results-summary" id="results-summary" hidden></p>
       <p class="results-summary" id="risk-summary" hidden></p>
+
+      <div class="grow-card">
+        <h3 class="grow-title">What are you growing here?</h3>
+        <p class="panel-sub">Pick one. Advice uses this spot's real sun hours, not a guess from the photo.</p>
+        <div class="chip-row" id="plant-picker"></div>
+        <div class="plant-advice" id="plant-advice"></div>
+      </div>
 
       <details class="plant-care" id="plant-care" hidden>
         <summary>
-          <span class="plant-care-title">Plant &amp; grass burn risk + watering advice</span>
+          <span class="plant-care-title">Optional: close-up photo of one plant</span>
           <span class="plant-care-badge" id="plant-care-badge"></span>
         </summary>
         <div class="plant-care-body">
@@ -403,12 +394,12 @@
     Built for NextStep Hacks 2026 (theme: Earth Forward) by Christian Saterfield.
   </footer>
 
-  <script src="./exif.js?v=7"></script>
-  <script src="./solar.js?v=7"></script>
-  <script src="./weather.js?v=7"></script>
-  <script src="./risk.js?v=7"></script>
-  <script src="./zones.js?v=7"></script>
-  <script src="./plantcare.js?v=7"></script>
-  <script src="./app.js?v=7"></script>
+  <script src="./exif.js?v=8"></script>
+  <script src="./solar.js?v=8"></script>
+  <script src="./weather.js?v=8"></script>
+  <script src="./risk.js?v=8"></script>
+  <script src="./zones.js?v=8"></script>
+  <script src="./plantcare.js?v=8"></script>
+  <script src="./app.js?v=8"></script>
 </body>
 </html>
