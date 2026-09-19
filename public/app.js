@@ -1289,7 +1289,7 @@ async function handlePlantPhoto(img) {
 
   const hotHourList = hotSunHours(currentRows);
   const frostHourList = frostRiskHours(currentRows);
-  const severity = PlantCare.assess(currentRows).severity;
+  const burn = PlantCare.assess(currentRows);
 
   try {
     const res = await fetch("/api/plant-analyze", {
@@ -1303,7 +1303,13 @@ async function handlePlantPhoto(img) {
           hotHoursRange: formatHourRange(hotHourList),
           frostHours: frostHourList.length,
           frostHoursRange: formatHourRange(frostHourList),
-          severity,
+          severity: burn.severity,
+          // Real, already-computed watering clock times (before the hot
+          // stretch starts / after it ends) — the AI anchors its schedule
+          // to these exact times instead of inventing its own, and only
+          // supplies the amount at each one.
+          waterBeforeTime: burn.waterBefore !== null ? formatHour(burn.waterBefore) : null,
+          waterAfterTime: burn.waterBefore !== null ? formatHour(burn.waterAfter) : null,
         },
       }),
     });
@@ -1325,6 +1331,11 @@ function renderPlantAnalysis(a, mode) {
   }
   const tips = Array.isArray(a.tips) && a.tips.length ? `<ul class="plant-analysis-tips">${a.tips.map((t) => `<li>${t}</li>`).join("")}</ul>` : "";
   const demoNote = mode === "demo" ? `<p class="plant-analysis-status">Demo mode — connect a live AI key for real identification.</p>` : "";
+  const schedule = Array.isArray(a.waterSchedule) && a.waterSchedule.length
+    ? `<div class="water-times">${a.waterSchedule.map((w) =>
+        `<span class="water-time">Water at <b>${w.time}</b> — ${w.amount}</span>`
+      ).join("")}</div>`
+    : "";
   plantAnalysisResult.innerHTML = `
     <div class="plant-analysis-card">
       <div class="plant-analysis-head">
@@ -1332,7 +1343,7 @@ function renderPlantAnalysis(a, mode) {
         <span class="plant-analysis-confidence ${a.confidence || "low"}">${a.confidence || "low"} confidence</span>
       </div>
       ${a.sunNeeds ? `<p><b>Sun:</b> ${a.sunNeeds}</p>` : ""}
-      ${a.waterNeeds ? `<p><b>Water:</b> ${a.waterNeeds}</p>` : ""}
+      ${schedule}
       ${a.heatTolerance ? `<p><b>At this spot today:</b> ${a.heatTolerance}</p>` : ""}
       ${tips}
       ${demoNote}

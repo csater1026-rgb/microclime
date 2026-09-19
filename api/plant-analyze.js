@@ -35,14 +35,23 @@ measurement — never claim more precision than a photo can actually give.
 You will be given the REAL, already-computed sun and heat data for this
 exact location — sun-hours today, how many of those hours are hot/high-heat
 (and the actual clock-time range those hours fall in, if any), how many
-hours carry frost risk tonight (and their clock-time range, if any), and the
-current burn-risk severity. Never invent or contradict these numbers —
-if a time range is given, mention it naturally (e.g. "especially rough
-between 12PM and 4PM") instead of only giving a count. Use the size
-estimate together with this real heat/sun data to give a concrete water
-AMOUNT (e.g. "about 1-2 cups", "roughly half a gallon", "1-2 gallons"),
-not just timing — scale it up for a larger plant or a hotter/sunnier spot,
-down for a smaller plant or a shadier one.
+hours carry frost risk tonight (and their clock-time range, if any), the
+current burn-risk severity, and — when today has a hot stretch — the exact
+clock times this spot should be watered before and after it (already
+computed deterministically; never invent your own times when these are
+given). Never invent or contradict any of these numbers — if a time range
+is given, mention it naturally (e.g. "especially rough between 12PM and
+4PM") instead of only giving a count.
+
+You MUST always return a watering SCHEDULE: specific clock times, each
+paired with a concrete amount at that time — never just a frequency like
+"every other day" with no times, and never a bare amount with no times.
+- If waterBeforeTime/waterAfterTime are given, use exactly those two times.
+- If they are not given (no hot stretch today), use sensible typical times
+  for this species instead — usually early morning and early evening.
+Scale the AMOUNT at each time (not the times themselves) using the size
+estimate and today's real heat/sun data — e.g. more per-visit for a larger
+plant or a hotter/sunnier spot, less for a smaller plant or a shadier one.
 
 Respond with ONLY a JSON object, no markdown fences, no extra text, in
 exactly this shape:
@@ -51,13 +60,16 @@ exactly this shape:
   "confidence": "high" | "medium" | "low",
   "sizeEstimate": "short visual size call, e.g. \\"small seedling\\", \\"medium shrub, roughly knee-high\\", \\"large mature tree\\" — or \\"n/a\\" if nothing identifiable is visible",
   "sunNeeds": "one sentence on the ideal sun exposure for what's in the photo",
-  "waterNeeds": "one sentence with a CONCRETE amount and frequency scaled to the size estimate and today's real heat/sun data — e.g. \\"about 1-2 cups every other day, more during the hot stretch\\"",
+  "waterSchedule": [
+    { "time": "e.g. \\"7:00 AM\\" — use waterBeforeTime/waterAfterTime exactly when given", "amount": "concrete amount for THIS visit, e.g. \\"about 1 cup\\", \\"roughly half a gallon\\"" },
+    { "time": "the second watering time", "amount": "concrete amount for this visit" }
+  ],
   "heatTolerance": "one sentence on how well what's in the photo handles today's actual heat/sun exposure at this spot",
   "tips": ["short actionable tip", "short actionable tip"]
 }
 If the photo doesn't clearly show any plants, grass, or trees, set species
 to "Nothing green clearly visible", confidence to "low", sizeEstimate to
-"n/a", and give general tips instead.`;
+"n/a", waterSchedule to an empty array, and give general tips instead.`;
 
 // Models occasionally wrap the JSON in prose ("Sure, here's the result:"),
 // use a code fence without the "json" tag, or add trailing commentary after
@@ -79,12 +91,18 @@ function extractJson(raw) {
 function demoAnalysis(context) {
   const hotRange = context.hotHoursRange ? ` (roughly ${context.hotHoursRange})` : "";
   const frostRange = context.frostHoursRange ? ` (roughly ${context.frostHoursRange})` : "";
+  const schedule = context.waterBeforeTime
+    ? [
+        { time: context.waterBeforeTime, amount: "connect a live AI key for a real amount" },
+        { time: context.waterAfterTime, amount: "connect a live AI key for a real amount" },
+      ]
+    : [];
   return {
     species: "Demo mode — plant not identified",
     confidence: "low",
     sunNeeds: "Connect a live AI key to identify your actual plant from the photo.",
-    waterNeeds: `Based on your spot's real data: you're seeing ${context.hotHours || 0} hot-sun hour(s) today${hotRange} and ${context.frostHours || 0} frost-risk hour(s) tonight${frostRange}.`,
-    heatTolerance: "This is a scripted placeholder — the live version reads your actual photo.",
+    waterSchedule: schedule,
+    heatTolerance: `This is a scripted placeholder — the live version reads your actual photo. Your spot's real data: ${context.hotHours || 0} hot-sun hour(s) today${hotRange} and ${context.frostHours || 0} frost-risk hour(s) tonight${frostRange}.`,
     tips: ["Add a live API key to get species-specific identification and advice."],
   };
 }
@@ -120,7 +138,10 @@ export default async function handler(req, res) {
     `${context.hotHoursRange ? ` (${context.hotHoursRange})` : ""}, ` +
     `${context.frostHours ?? 0} hours carry frost risk tonight` +
     `${context.frostHoursRange ? ` (${context.frostHoursRange})` : ""}, ` +
-    `current burn-risk severity is "${context.severity ?? "unknown"}".`;
+    `current burn-risk severity is "${context.severity ?? "unknown"}"` +
+    (context.waterBeforeTime
+      ? `. Water this spot before ${context.waterBeforeTime} and again after ${context.waterAfterTime} — use exactly these two times in waterSchedule.`
+      : ". No hot stretch today, so no pre-computed watering times — pick sensible typical times for this species.");
 
   try {
     const upstream = await fetch(`${baseUrl}/chat/completions`, {
@@ -170,7 +191,7 @@ export default async function handler(req, res) {
           species: "Couldn't parse a clean result",
           confidence: "low",
           sunNeeds: raw.slice(0, 300) || "The model's reply wasn't in the expected format.",
-          waterNeeds: "",
+          waterSchedule: [],
           heatTolerance: "",
           tips: [],
         },
