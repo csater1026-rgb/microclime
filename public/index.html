@@ -302,11 +302,10 @@
           <div id="plant-care-rule"></div>
 
           <div class="plant-photo-section">
-            <p class="plant-photo-lede">AI automatically identifies what's growing here from your horizon photo and tailors advice using the real sun and heat data above — no extra step needed. Got a closer or different photo?</p>
+            <p class="plant-photo-lede">Want advice tailored to the actual plant? Take a close-up photo of it (not the wide horizon shot) and AI will identify it and tailor advice using the real sun and heat data above.</p>
             <div class="photo-source-row">
-              <button class="btn-secondary" id="plant-use-horizon-btn" type="button" disabled>Re-check my horizon photo</button>
-              <button class="btn-secondary" id="plant-take-photo-btn" type="button">Take a new photo</button>
-              <button class="btn-secondary" id="plant-upload-photo-btn" type="button">Upload a file</button>
+              <button class="btn-primary" id="plant-take-photo-btn" type="button">Take a photo of the plant</button>
+              <button class="btn-secondary" id="plant-upload-photo-btn" type="button">Upload a photo</button>
             </div>
             <input type="file" id="plant-camera-input" accept="image/*" capture="environment" hidden />
             <input type="file" id="plant-file-input" accept="image/*" hidden />
@@ -382,10 +381,9 @@
           <button class="btn-primary" id="placement-find-btn" type="button">Find the best spot</button>
         </div>
         <div class="photo-source-row placement-photo-row">
-          <span class="field-hint">or skip typing it — pick a photo and it identifies the plant automatically:</span>
-          <button class="btn-primary" id="placement-use-horizon-btn" type="button" disabled>Use my yard/garden photo</button>
-          <button class="btn-secondary" id="placement-take-photo-btn" type="button">Take a new photo</button>
-          <button class="btn-secondary" id="placement-upload-photo-btn" type="button">Upload a file</button>
+          <span class="field-hint">Don't know the exact name? Take a close-up photo of it instead and AI will identify it:</span>
+          <button class="btn-secondary" id="placement-take-photo-btn" type="button">Take a photo of the plant</button>
+          <button class="btn-secondary" id="placement-upload-photo-btn" type="button">Upload a photo</button>
         </div>
         <input type="file" id="placement-camera-input" accept="image/*" capture="environment" hidden />
         <input type="file" id="placement-file-input" accept="image/*" hidden />
@@ -393,15 +391,11 @@
       </div>
     </section>
 
-    <section class="panel" id="community-panel" hidden>
-      <h2 class="panel-title"><span class="step-badge">6</span>Your block's microclimate map</h2>
-      <p class="panel-sub">If people nearby use Microclime too, their spots combine into a map more accurate than any single weather station — everyone sees frost risk before the official forecast catches it.</p>
-      <div class="community-note">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-        <span>Demo data below — this preview shows what a shared neighborhood view would look like once more than one household is using Microclime. Your real spots aren't shared with anyone.</span>
-      </div>
+    <details class="panel community-panel-collapsed" id="community-panel" hidden>
+      <summary class="panel-title"><span class="step-badge">6</span>Neighborhood map (concept preview, not a real feature yet)</summary>
+      <p class="panel-sub">This is a mockup, not live data: it shows what a shared neighborhood view could look like once more than one household uses Microclime. Your real spots aren't shared with anyone.</p>
       <div class="community-map" id="community-map"></div>
-    </section>
+    </details>
   </main>
   </div>
 

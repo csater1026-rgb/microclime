@@ -760,6 +760,23 @@ input[type="file"] {
   white-space: nowrap;
 }
 
+.community-panel-collapsed > summary.panel-title {
+  cursor: pointer;
+  list-style: none;
+}
+.community-panel-collapsed > summary.panel-title::-webkit-details-marker { display: none; }
+.community-panel-collapsed > summary.panel-title::after {
+  content: "▾";
+  margin-left: auto;
+  opacity: 0.5;
+  transition: transform 0.15s ease;
+}
+.community-panel-collapsed[open] > summary.panel-title::after { transform: rotate(180deg); }
+.community-panel-collapsed:not([open]) .panel-sub,
+.community-panel-collapsed:not([open]) .community-map {
+  display: none;
+}
+
 .community-note {
   display: flex;
   align-items: flex-start;

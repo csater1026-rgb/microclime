@@ -50,7 +50,6 @@ let state = loadState();
 // a y-fraction (0=top of photo, 1=bottom) or null where untouched.
 let trace = new Array(BUCKETS).fill(null);
 let photoImg = null;
-let plantAutoAnalyzedFor = null; // avoids re-running AI plant ID on the same photo
 
 const el = (id) => document.getElementById(id);
 
@@ -91,7 +90,6 @@ const riskSummary = el("risk-summary");
 const plantCare = el("plant-care");
 const plantCareBadge = el("plant-care-badge");
 const plantCareRule = el("plant-care-rule");
-const plantUseHorizonBtn = el("plant-use-horizon-btn");
 const plantTakePhotoBtn = el("plant-take-photo-btn");
 const plantUploadPhotoBtn = el("plant-upload-photo-btn");
 const plantCameraInput = el("plant-camera-input");
@@ -300,17 +298,6 @@ uploadPhotoBtn.addEventListener("click", () => fileInput.click());
 cameraInput.addEventListener("change", () => loadPhotoFrom(cameraInput));
 fileInput.addEventListener("change", () => loadPhotoFrom(fileInput));
 
-// The "use my photo" reuse buttons (plant-care and plant-placement) only
-// work while the original photo is still in memory — it isn't persisted
-// with a saved spot (see the comment where photoImg is nulled below), so a
-// stale enabled button that just dead-ends into an error reads as "it
-// didn't use my photo." Disable them instead whenever there's no photo to
-// reuse, so it's obvious at a glance rather than discovered by clicking.
-function syncPhotoReuseButtons() {
-  plantUseHorizonBtn.disabled = !photoImg;
-  placementUseHorizonBtn.disabled = !photoImg;
-}
-
 // Auto-detects the skyline from the photo's actual pixels, so tracing
 // starts from a real guess instead of a blank canvas — still fully
 // editable by hand afterward, same as every other auto-fill in this app.
@@ -436,7 +423,6 @@ function detectHorizonTrace() {
 
 function applyPhoto(img) {
   photoImg = img;
-  syncPhotoReuseButtons();
   trace = new Array(BUCKETS).fill(null);
   const wrapWidth = canvasWrap.clientWidth || 640;
   canvas.width = wrapWidth;
@@ -712,7 +698,6 @@ spotsList.addEventListener("click", (e) => {
 
   if (e.target.classList.contains("spot-load-btn")) {
     photoImg = null; // the original photo isn't saved — just the traced line
-    syncPhotoReuseButtons();
     trace = spot.trace.slice();
     state.heading = spot.heading;
     state.fov = spot.fov;
@@ -749,7 +734,6 @@ spotsList.addEventListener("click", (e) => {
 
 const placementNameInput = el("placement-name-input");
 const placementFindBtn = el("placement-find-btn");
-const placementUseHorizonBtn = el("placement-use-horizon-btn");
 const placementTakePhotoBtn = el("placement-take-photo-btn");
 const placementUploadPhotoBtn = el("placement-upload-photo-btn");
 const placementCameraInput = el("placement-camera-input");
@@ -843,13 +827,6 @@ placementFindBtn.addEventListener("click", () => {
   runPlacementLookup({ plantName: name });
 });
 
-placementUseHorizonBtn.addEventListener("click", () => {
-  if (!photoImg) {
-    placementResult.innerHTML = `<p class="plant-analysis-status error">Take or upload a photo of your yard in step 2 first — or take/upload a new one below.</p>`;
-    return;
-  }
-  runPlacementLookup({ imageDataUrl: downscaleImage(photoImg, 768) });
-});
 placementTakePhotoBtn.addEventListener("click", () => openCameraModal("placement", placementCameraInput));
 placementUploadPhotoBtn.addEventListener("click", () => placementFileInput.click());
 
@@ -1148,11 +1125,6 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
     renderWhatif(sunHours, frostHours, baselineResult ? baselineResult.sunHours : null, baselineFrostHours);
     renderCommunity(frostHours);
     renderPlantCare(rows);
-    if (photoImg && photoImg !== plantAutoAnalyzedFor) {
-      plantAutoAnalyzedFor = photoImg;
-      plantCare.open = true; // surface the auto-identified plant without an extra click
-      handlePlantPhoto(photoImg);
-    }
     scheduleSummarize();
   } catch (err) {
     if (token !== recomputeToken) return;
@@ -1279,13 +1251,6 @@ function renderPlantAnalysis(a, mode) {
     </div>`;
 }
 
-plantUseHorizonBtn.addEventListener("click", () => {
-  if (!photoImg) {
-    plantAnalysisResult.innerHTML = `<p class="plant-analysis-status error">Take or upload a horizon photo in step 2 first.</p>`;
-    return;
-  }
-  handlePlantPhoto(photoImg);
-});
 plantTakePhotoBtn.addEventListener("click", () => openCameraModal("plant", plantCameraInput));
 plantUploadPhotoBtn.addEventListener("click", () => plantFileInput.click());
 
