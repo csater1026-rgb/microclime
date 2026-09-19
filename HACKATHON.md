@@ -36,49 +36,58 @@ future Claude session working on this repo. Read this first.
 
 - **Live site:** ✅ https://microclime.vercel.app
   (production domain; the old `*.vercel.app` preview URL is SSO-locked).
-
-## Agent split (Claude Code + Cursor, same night)
-
-Claude Code (`72f04b7`): stopped auto plant-ID on the wide horizon photo;
-close-up only; typed plant name is the reliable placement path; neighborhood
-map collapsed as a concept preview.
-
-Cursor (this pass): make the photo pay off (sun-path overlay + a plain
-"X hours / full-sun|partial|shade" verdict), replace broken plant-ID as
-the main watering path with a tap-to-pick plant list that always works,
-and hide heading/FOV/what-if jargon behind optional details. Do not
-reintroduce "use my yard photo" for plant ID.
 - **Repo:** ✅ `csater1026-rgb/microclime` (this repo), public.
-- **Demo video:** In progress as of 2026-09-19. A full narrated walkthrough
-  (~3:56, under the 5-minute cap) already exists, built via a scripted
-  Playwright screen-recording + the user's own recorded narration audio,
-  mixed together. As of the last session working on it:
-  - Still using a **synthetic canvas-drawn yard photo** instead of a real
-    one — user said they'd send a real photo to re-run the horizon
-    auto-tracer on, and the video should be re-rendered with it before
-    final submission.
-  - The date shown in the app during the recording was a fixed placeholder
-    (`2026-06-21`) — user asked for this to reflect the **actual current
-    date** instead, to look less obviously staged. Needs to change before
-    the final re-render.
-  - User asked to cut "three words" out of the narration audio right before
-    a pause around the 3:14 mark — the exact words were never given, so this
-    edit is still outstanding (low priority vs. the photo/date fixes given
-    the deadline).
-- **Write-up/description:** README.md and ONE_PAGER.md in this repo already
-  cover the problem, solution, features, build phases, and stack — this
-  content can be pasted almost directly into the Devpost submission's
-  "story" field.
+- **Write-up/description:** ✅ `DEVPOST.md` has paste-ready, current copy for
+  every Devpost form field (tagline, Built With, story). `README.md` and
+  `ONE_PAGER.md` are also up to date with the current app.
+- **Demo video:** ⚠️ **Stale — needs re-recording before submission.** The
+  existing cut (~3:56, `demo-assets/` has the real photo + raw narration
+  audio it was built from) shows the OLD UI: the pre-redesign 8-step intro,
+  "yard" wording, the old broken plant-ID auto-trigger, no frost-aware
+  plant advice. All of that has since been rebuilt (see history below).
+  The video no longer represents the live site and should be re-recorded
+  against the current UI before final submission.
+
+## Build history (Claude Code + Cursor, same repo, same night)
+
+Rough chronological summary, newest last:
+
+1. Claude Code: fixed the real horizon-detection bug (global best-split
+   algorithm was picking the wrong line on real photos; then a second bug
+   where sunset sky color fooled the edge scan) — verified against the
+   user's real backyard photo, both fixes live.
+2. Claude Code: stopped auto-identifying plants from the wide horizon
+   photo (the actual cause of a tester's "plant ID never works" report) —
+   close-up photo only; typed plant name became the reliable path.
+3. Cursor: full UX rework — photo-first flow, a sun-path-on-photo overlay,
+   a plain "X hours / full-sun|partial|shade" verdict card, a tap-to-pick
+   plant list that always works (no AI dependency), collapsed the 8-step
+   intro to 3 steps, hid heading/FOV/what-if behind optional details.
+4. Claude Code: merged Cursor's rework, resolved conflicts, standardized
+   all copy on "garden" (dropped "yard"/"field"), fixed a mobile header
+   wrapping bug.
+5. Cursor: fall theme (brown page background, cream cards stay cream,
+   deeper burnt-orange titles) + phone-optimized layout (44px tap targets,
+   stacked buttons, safe-area padding). Claude Code applied the CSS-only
+   handoff without touching the "garden" wording or `app.js`.
+6. Claude Code: extended the tap-to-pick plant advice to cover what
+   actually matters per direct feedback — sun adequacy, a real watering
+   AMOUNT (not just timing), sunburn risk, and frost risk called out by
+   plant name — and demoted the "compare my saved spots" ranking tool to
+   an optional collapsed block instead of the main flow.
+7. Claude Code: full copy audit — removed two pieces of stale/orphaned
+   markup (`#results-summary`/`#risk-summary`, dead since the verdict-card
+   redesign; a leftover step-badge "6" on the neighborhood panel from the
+   old 6-step nav), fixed remaining "yard"/"where you want to plant"
+   language across the app AND the AI system prompts in `api/*.js`, and
+   brought `README.md`/`DEVPOST.md` in line with the current app instead
+   of describing the pre-redesign version.
 
 ## Immediate priority given the Sep 20 3:00pm MDT deadline
 
-1. Get the real yard photo from the user, re-run the demo recording with it.
-2. Update the recording to show today's real date instead of the fixed
-   `2026-06-21`.
-3. Re-mux narration audio onto the re-recorded video, verify it's still
-   under 5 minutes, deliver it.
-4. Confirm the live Vercel URL is current/production (not a stale preview
-   deploy link) before submitting.
-5. Submit on Devpost: video link + repo link + live site link + write-up
-   (adapted from README/ONE_PAGER) + note that the whole project was built
-   Aug 23–Sep 20, entirely within the hackathon window.
+1. **Re-record the demo video** against the current live UI — this is the
+   one piece of the submission that's actually out of date right now.
+2. Upload the video to YouTube (Unlisted), get the watch link.
+3. Confirm the live Vercel URL is current/production before submitting.
+4. Submit on Devpost using `DEVPOST.md` — it already has every field
+   written and current, just needs the video link pasted in.

@@ -9,7 +9,7 @@
 const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 const DEFAULT_MODEL = "gemini-3.6-flash";
 
-const SYSTEM_PROMPT = `You explain a yard-monitoring app's results for
+const SYSTEM_PROMPT = `You explain a garden-monitoring app's results for
 someone who isn't technical. You will be given REAL, already-computed
 numbers for one exact spot — never invent, round away, or contradict them.
 If a clock-time range is given for frost or heat hours (e.g. "1AM-5AM"),

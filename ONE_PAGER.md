@@ -44,18 +44,20 @@ across your whole zip code.
    single weather station. Building the real multi-user version was out of
    scope for a solo build on this timeline, so this is shown as a working
    demo with seeded data alongside your real computed numbers.
-7. **AI plant identification, tied to the real numbers.** Add a photo — a
-   close-up or the same wide horizon shot from step 2, showing multiple
-   plants/grass/trees at once — and the model identifies what's there and
-   gives species-specific watering and sun-exposure advice, with the actual
-   clock-time ranges for hot and frost hours, not just counts. Built
-   directly on this spot's real, already-computed data, not a generic
-   database lookup.
-8. **"Where should I plant this?"** Name a plant (or show it a photo) and
-   it ranks every spot you've saved by how well each one's real computed
-   sun-hours actually fits that plant's known sun needs — the AI only
-   supplies the plant's general sun requirement; the ranking itself is
-   plain, deterministic comparison against real numbers, not an AI guess.
+7. **Tap-to-pick plant advice that always works.** Pick what's growing there
+   from a plant list and get sun-adequacy, a real watering amount and
+   timing, sunburn risk, and frost risk (called out by name for
+   frost-sensitive plants) — all deterministic, computed from this spot's
+   real numbers, no AI guess required. Prefer a close-up photo instead?
+   Take one of the actual plant (not the wide horizon shot — there's
+   nothing plant-like to recognize in a skyline photo) and AI identifies it
+   and tailors the same advice to that species.
+8. **"Where should I plant this?" (optional, tucked away).** Name a plant
+   and it ranks every spot you've saved by how well each one's real
+   computed sun-hours fits that plant's known needs — deterministic
+   comparison against real numbers, not an AI guess. It's a real, working
+   feature, just not the headline one: the main flow is about the spot
+   you're already standing at, not scouting a new one.
 
 Real location auto-detection throughout: a live photo grabs your device's
 GPS automatically, and an uploaded photo reads its location straight out of

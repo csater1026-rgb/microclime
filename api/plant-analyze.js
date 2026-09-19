@@ -18,7 +18,7 @@ const SYSTEM_PROMPT = `You identify plants, grass, or trees from a photo and
 give specific, practical watering and sun-exposure advice.
 
 The photo might be a close-up of one plant, or it might be a wide shot of a
-yard or horizon showing grass, trees, shrubs, or several kinds of greenery
+garden or horizon showing grass, trees, shrubs, or several kinds of greenery
 at once — treat both as valid. If several kinds of plants/grass/trees are
 visible, identify each briefly and give combined, practical advice covering
 all of them rather than forcing a single species. If nothing green is

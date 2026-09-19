@@ -5,8 +5,12 @@ Deadline: Sep 20, 2026 @ 3:00pm MDT (5:00pm EDT on Devpost).
 
 Do these in order:
 
-1. Put the tightened app on https://microclime.vercel.app (see §4 if the live site still shows the old layout).
+1. ✅ Done — the tightened app (photo-first, fall theme, garden wording) is live on https://microclime.vercel.app.
 2. Upload the demo video to YouTube as Unlisted. Paste the watch URL into Devpost.
+   ⚠️ The existing demo video was recorded against the OLD UI (before the
+   photo-first redesign, fall theme, and the frost/water/sunburn plant
+   advice) — it no longer matches the live site. Re-record before
+   submitting, or submit as-is only if there's truly no time left.
 3. Create the project with the copy below and submit.
 
 ---
@@ -17,7 +21,7 @@ Do these in order:
 
 **Tagline** (under 200 characters):
 
-Take one photo of a garden spot. See how many hours of sun it actually gets, and what to plant or water because of that.
+Take one photo of your garden spot. See how many hours of sun it actually gets, and how much and when to water because of that.
 
 **Built With:**
 
@@ -44,9 +48,9 @@ My mom got into gardening and kept getting her plants sunburned. She had no way 
 
 ### What it does
 
-You stand where you want to plant and take a photo looking out. Microclime traces the skyline from the photo (trees, fence, roof) and draws today's sun path on that picture. Then it tells you, in plain language, how many hours of sun that spot gets and what that means (full sun, partial sun, or mostly shade).
+You stand right at the spot where your plant already is and take a photo looking out. Microclime traces the skyline from the photo (trees, fence, roof) and draws today's sun path on that picture. Then it tells you, in plain language, how many hours of sun that spot gets and what that means (full sun, partial sun, or mostly shade).
 
-Tap what you are growing (tomato, lawn, hostas, and so on). It says whether this spot's real sun hours fit that plant, and when to water if today is hot. Frost risk is called out when it matters.
+Tap what you are growing (tomato, lawn, hostas, and so on). It says whether this spot's real sun hours are enough for that plant, a real watering amount and timing, its sunburn risk today, and whether frost could hurt it tonight.
 
 You can save more than one spot and compare them. Optional extras (a close-up plant photo, a what-if tree edit, a neighborhood mockup) stay folded away. They are not the product.
 
@@ -60,7 +64,7 @@ I used Claude as a coding assistant. The decisions in the app are deterministic.
 
 ### Challenges I ran into
 
-The first horizon tracer looked fine on fake test images and failed on a real backyard photo. It kept locking onto the grass instead of the trees, and near sunset it treated the sky's own color shift as a wall. I rewrote it to find the first real brightness edge from the top down.
+The first horizon tracer looked fine on fake test images and failed on a real garden photo. It kept locking onto the grass instead of the trees, and near sunset it treated the sky's own color shift as a wall. I rewrote it to find the first real brightness edge from the top down.
 
 A tester also said plant ID "never works." That was on me: the app was sending the wide garden photo to Gemini and asking it to name a plant. There is almost no plant to see in a skyline shot. I stopped that, and made the main advice path a tap-to-pick list that uses the real sun-hours number. That path always works, even if AI is down.
 
@@ -87,19 +91,3 @@ A real shared neighborhood layer (the current one is labeled as a mockup), and m
 - Visibility: Unlisted
 
 If you re-cut the video, keep it under 3 minutes: photo, line on the photo, hours verdict, tap a plant. Skip the extra panels.
-
----
-
-## 4. Get the new UI onto the live site
-
-The tightened UI is committed locally as `b4ede41` on `cursor/simplify-spot-ux-de75` in the Microclime clone, plus later photo-first edits. This Cursor session cannot push to `csater1026-rgb/microclime` (403).
-
-Tell the Claude Code agent on that repo:
-
-- Do not put back "use my garden photo" for plant ID.
-- Photo first. No lat/lon as the first screen.
-- Verdict card + plant chips are the product.
-- Production URL is https://microclime.vercel.app
-- Then `vercel --prod` or push to `main` so the live site updates.
-
-Until that lands, judges who open the live URL will still see the older, busier layout.

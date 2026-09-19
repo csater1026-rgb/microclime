@@ -1,7 +1,7 @@
 // Serverless "what does this plant actually need" endpoint.
 //
 // Deliberately narrow: given a plant (by name or photo), return ONLY its
-// general sun-need range (species knowledge) — no local sun-hours, no yard
+// general sun-need range (species knowledge) — no local sun-hours, no garden
 // data, nothing about the user's spots. The actual "where should I plant
 // this" recommendation is computed client-side, deterministically, by
 // comparing this range against each saved spot's REAL computed sun-hours.
@@ -13,7 +13,7 @@ const DEFAULT_MODEL = "gemini-3.6-flash";
 const SYSTEM_PROMPT = `You are asked about one plant, either by name or from
 a photo. Identify it as specifically as you reasonably can, then give its
 general, well-known sun requirement as a daily direct-sun-hours range —
-this is textbook species knowledge, not anything about a specific yard.
+this is textbook species knowledge, not anything about a specific garden.
 
 Respond with ONLY a JSON object, no markdown fences, no extra text:
 {

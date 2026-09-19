@@ -85,9 +85,7 @@ const clearTraceBtn = el("clear-trace-btn");
 const autoDetectBtn = el("auto-detect-btn");
 const traceStatus = el("trace-status");
 const resultsPanel = el("results-panel");
-const resultsSummary = el("results-summary");
 const weatherStatus = el("weather-status");
-const riskSummary = el("risk-summary");
 const plantCare = el("plant-care");
 const plantCareBadge = el("plant-care-badge");
 const plantCareRule = el("plant-care-rule");
@@ -1189,7 +1187,6 @@ function applyRisk(rows, sunHours, byHour, biasC) {
 
 async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
   weatherStatus.textContent = "Loading live forecast…";
-  riskSummary.hidden = true;
   plantCare.hidden = true;
   try {
     const hourly = await Weather.fetchHourly(state.lat, state.lon, state.date);
@@ -1209,7 +1206,6 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
     }
 
     weatherStatus.textContent = "Live forecast loaded.";
-    riskSummary.hidden = true;
     renderTodayAction(rows, sunHours, frostHours, heatHours);
     renderPlantAdvice();
 
@@ -1604,10 +1600,6 @@ function setupPlantPicker() {
 function renderResults(rows, sunHours) {
   resultsPanel.hidden = false;
   renderVerdict(rows, sunHours);
-  if (resultsSummary) {
-    resultsSummary.hidden = true;
-    resultsSummary.textContent = "";
-  }
 
   hourStrip.innerHTML = "";
   for (const r of rows) {

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#3c2718" />
   <title>Microclime — how much sun does this spot get?</title>
-  <meta name="description" content="Take one photo of a garden spot. See how many hours of sun it actually gets, and what to plant or water because of that." />
+  <meta name="description" content="Take one photo of your garden spot. See how many hours of sun it actually gets, and how much and when to water because of that." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff8a5c' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="./styles.css?v=11" />
 </head>
@@ -64,7 +64,7 @@
           <span class="step-badge">1</span>
           <div>
             <div class="intro-step-title">Photo of the spot</div>
-            <div class="intro-step-body">Stand where you want to plant and take a picture looking out. Trees, fences, and roofs in that photo are what block the sun.</div>
+            <div class="intro-step-body">Stand right at your plant or garden bed and take a picture looking out. Trees, fences, and roofs in that photo are what block the sun.</div>
           </div>
         </div>
         <div class="intro-step">
@@ -77,8 +77,8 @@
         <div class="intro-step">
           <span class="step-badge">3</span>
           <div>
-            <div class="intro-step-title">What to grow and when to water</div>
-            <div class="intro-step-body">You get hours of sun and advice for a plant you pick. No guessing the species from a wide garden shot.</div>
+            <div class="intro-step-title">Sun, water, and frost advice for what's already there</div>
+            <div class="intro-step-body">Pick what's growing in that spot and get real watering amounts, sunburn risk, and frost risk for it — no guessing the species from a wide garden shot.</div>
           </div>
         </div>
       </div>
@@ -104,7 +104,7 @@
       <div class="hero-text">
         <h1>How much sun does this spot actually get?</h1>
         <p class="hero-sub">
-          Take one photo of your garden. See the hours of sun, what will grow here, and when to water.
+          Take one photo of your garden. See the hours of sun, if that's enough for what's already growing there, and how much and when to water it.
         </p>
       </div>
       <div class="hero-art" aria-hidden="true">
@@ -157,7 +157,7 @@
     <section class="panel" id="horizon-panel">
       <h2 class="panel-title"><span class="step-badge">1</span>Photo of the spot</h2>
       <p class="panel-sub">
-        Stand where you want to plant and take a picture looking out.
+        Stand right at your plant or garden bed and take a picture looking out.
         Trees, fences, and roofs in the photo are what block the sun here.
       </p>
 
@@ -269,9 +269,6 @@
         <button class="btn-secondary" id="summarize-btn" type="button">Regenerate summary</button>
       </div>
 
-      <p class="results-summary" id="results-summary" hidden></p>
-      <p class="results-summary" id="risk-summary" hidden></p>
-
       <div class="grow-card">
         <h3 class="grow-title">What are you growing here?</h3>
         <p class="panel-sub">Pick one. Advice uses this spot's real sun hours, not a guess from the photo.</p>
@@ -347,7 +344,7 @@
 
     <section class="panel" id="spots-panel" hidden>
       <h2 class="panel-title"><span class="step-badge">3</span>Saved spots</h2>
-      <p class="panel-sub">Every spot you've saved, grouped by how much sun it actually gets — so you know what to plant where.</p>
+      <p class="panel-sub">Every spot you've saved, grouped by how much sun it actually gets.</p>
       <div class="spots-list" id="spots-list"></div>
 
       <details class="placement-section more-tools">
@@ -372,7 +369,7 @@
     </section>
 
     <details class="panel community-panel-collapsed" id="community-panel" hidden>
-      <summary class="panel-title"><span class="step-badge">6</span>Neighborhood map (concept preview, not a real feature yet)</summary>
+      <summary class="panel-title">Neighborhood map (concept preview, not a real feature yet)</summary>
       <p class="panel-sub">This is a mockup, not live data: it shows what a shared neighborhood view could look like once more than one household uses Microclime. Your real spots aren't shared with anyone.</p>
       <div class="community-map" id="community-map"></div>
     </details>

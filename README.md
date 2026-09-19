@@ -1,23 +1,26 @@
-# Microclime — know your exact spot
+# Microclime — how much sun does this spot get?
 
 **NextStep Hacks 2026 submission (theme: Earth Forward).**
 
 Live: https://microclime.vercel.app
 
-> Weather apps report your whole zip code. Microclime maps the sun, shade,
-> and frost risk for one exact spot in your garden — using a photo of your
-> real horizon, not a generic average — and gets smarter the more you use it.
+> Weather apps report your whole zip code. Microclime tells you the sun,
+> water, and frost story for one exact spot in your garden — using a photo
+> of your real horizon, not a generic average.
 
 ## The idea
 
 The back corner of your garden, shaded by a neighbor's tree until 11am, does
 not experience the same weather as the official forecast for your zip code.
-Microclime uses your phone camera to trace the real horizon at one specific
-spot, combines it with actual solar-position math to compute that spot's
-real sun-hours by the hour, and layers a frost/heat-risk model on top using
-live weather data. Log what you actually observe there and the model
-calibrates itself to your exact spot over time. Add or remove a point on
-your horizon to simulate planting or removing a tree before you commit to it.
+Take one photo of the spot where your plant already is, and Microclime
+traces the real horizon from it, combines that with actual solar-position
+math to compute real sun-hours by the hour, and tells you — for whatever
+you're growing there — whether it's getting enough sun, how much and when
+to water it, its sunburn risk today, and whether frost could hurt it
+tonight. Log what you actually observe there and the model calibrates
+itself to your exact spot over time. Comparing more than one spot, or
+testing a tree edit before you commit to it, are both there too, just
+tucked behind optional details instead of front and center.
 
 ## Build phases
 
