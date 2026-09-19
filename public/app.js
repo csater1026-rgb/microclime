@@ -1233,6 +1233,7 @@ function formatHour(h) {
   const display = h % 12 === 0 ? 12 : h % 12;
   return `${display}:00 ${period}`;
 }
+PlantCare.setFormatHour(formatHour);
 
 // Turns a list of hour numbers (0-23) into a human range like "12:00 PM–4:00 PM",
 // so the AI can say *when* something happens instead of just how many hours.
@@ -1581,7 +1582,8 @@ function renderPlantAdvice() {
     plantAdvice.textContent = "Set your location (or take a photo) so we can count today's sun hours first.";
     return;
   }
-  plantAdvice.innerHTML = PlantCare.advise(selected, currentSunHours, PlantCare.assess(currentRows));
+  const frostHourList = frostRiskHours(currentRows);
+  plantAdvice.innerHTML = PlantCare.advise(selected, currentSunHours, PlantCare.assess(currentRows), frostHourList.length, formatHourRange(frostHourList));
 }
 
 function setupPlantPicker() {

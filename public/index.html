@@ -350,7 +350,8 @@
       <p class="panel-sub">Every spot you've saved, grouped by how much sun it actually gets — so you know what to plant where.</p>
       <div class="spots-list" id="spots-list"></div>
 
-      <div class="placement-section">
+      <details class="placement-section more-tools">
+        <summary>Optional: comparing saved spots to find the best one for a plant?</summary>
         <p class="panel-sub" id="placement-lede">Have a specific plant? We'll check it against every spot you've saved and tell you which one actually fits its real sun needs.</p>
         <div class="field-row">
           <div class="field">
@@ -367,7 +368,7 @@
         <input type="file" id="placement-camera-input" accept="image/*" capture="environment" hidden />
         <input type="file" id="placement-file-input" accept="image/*" hidden />
         <div id="placement-result"></div>
-      </div>
+      </details>
     </section>
 
     <details class="panel community-panel-collapsed" id="community-panel" hidden>
@@ -387,7 +388,7 @@
   <script src="./weather.js?v=9"></script>
   <script src="./risk.js?v=9"></script>
   <script src="./zones.js?v=9"></script>
-  <script src="./plantcare.js?v=9"></script>
-  <script src="./app.js?v=9"></script>
+  <script src="./plantcare.js?v=11"></script>
+  <script src="./app.js?v=11"></script>
 </body>
 </html>
