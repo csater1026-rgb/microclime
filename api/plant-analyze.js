@@ -24,27 +24,40 @@ visible, identify each briefly and give combined, practical advice covering
 all of them rather than forcing a single species. If nothing green is
 clearly visible, say so plainly instead of guessing.
 
+Also judge the plant's approximate SIZE from the photo — a rough visual
+call, the same way an experienced grower would eyeball it (a small
+seedling needs a fraction of the water a mature shrub does). Use your
+judgment of leaf/canopy coverage, height relative to surroundings like
+pots, fences, or other plants in frame, and typical size for that species
+at that growth stage. Be honest that this is a visual estimate, not a
+measurement — never claim more precision than a photo can actually give.
+
 You will be given the REAL, already-computed sun and heat data for this
 exact location — sun-hours today, how many of those hours are hot/high-heat
 (and the actual clock-time range those hours fall in, if any), how many
 hours carry frost risk tonight (and their clock-time range, if any), and the
 current burn-risk severity. Never invent or contradict these numbers —
 if a time range is given, mention it naturally (e.g. "especially rough
-between 12PM and 4PM") instead of only giving a count.
+between 12PM and 4PM") instead of only giving a count. Use the size
+estimate together with this real heat/sun data to give a concrete water
+AMOUNT (e.g. "about 1-2 cups", "roughly half a gallon", "1-2 gallons"),
+not just timing — scale it up for a larger plant or a hotter/sunnier spot,
+down for a smaller plant or a shadier one.
 
 Respond with ONLY a JSON object, no markdown fences, no extra text, in
 exactly this shape:
 {
   "species": "what you see — one species, or a short list like \\"lawn grass, a young maple, a rose bush\\"",
   "confidence": "high" | "medium" | "low",
+  "sizeEstimate": "short visual size call, e.g. \\"small seedling\\", \\"medium shrub, roughly knee-high\\", \\"large mature tree\\" — or \\"n/a\\" if nothing identifiable is visible",
   "sunNeeds": "one sentence on the ideal sun exposure for what's in the photo",
-  "waterNeeds": "one sentence, specific — e.g. how often and how much",
+  "waterNeeds": "one sentence with a CONCRETE amount and frequency scaled to the size estimate and today's real heat/sun data — e.g. \\"about 1-2 cups every other day, more during the hot stretch\\"",
   "heatTolerance": "one sentence on how well what's in the photo handles today's actual heat/sun exposure at this spot",
   "tips": ["short actionable tip", "short actionable tip"]
 }
 If the photo doesn't clearly show any plants, grass, or trees, set species
-to "Nothing green clearly visible" and confidence to "low", and give general
-tips instead.`;
+to "Nothing green clearly visible", confidence to "low", sizeEstimate to
+"n/a", and give general tips instead.`;
 
 // Models occasionally wrap the JSON in prose ("Sure, here's the result:"),
 // use a code fence without the "json" tag, or add trailing commentary after
