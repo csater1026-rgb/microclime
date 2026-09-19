@@ -362,7 +362,15 @@ function detectHorizonTrace() {
         const r = data[idx], g = data[idx + 1], b = data[idx + 2];
         const brightness = (r + g + b) / 3;
         const blueBias = b - (r + g) / 2; // positive for blue/bright sky, negative for foliage/dirt
-        sum += brightness + blueBias * 0.5;
+        // Near sunset/sunrise, real open sky itself shifts from blue up top
+        // to pale orange near the horizon — a big blueBias swing with no
+        // real obstruction. Weighting blueBias heavily made that in-sky
+        // color shift look like a brightness "drop," so the edge scan below
+        // was stopping partway through open sky instead of reaching the
+        // real fence/treeline. Brightness alone is far more reliable across
+        // lighting conditions, since an actual obstruction (tree, fence,
+        // shaded hillside) is reliably much darker than any part of the sky.
+        sum += brightness + blueBias * 0.12;
       }
       rowScore[y] = sum / colWidth;
     }
