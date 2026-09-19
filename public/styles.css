@@ -950,6 +950,9 @@ input[type="file"] {
   .field input[type="text"],
   .field input[type="number"],
   .field input[type="date"] { width: 130px; }
+  .topbar { padding: 14px 16px; flex-wrap: wrap; row-gap: 8px; }
+  .topbar-actions { gap: 8px; }
+  .topbar-actions .btn-secondary { padding: 8px 12px; font-size: 12.5px; white-space: nowrap; }
 }
 
 .photo-caption {
