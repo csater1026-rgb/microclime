@@ -315,9 +315,19 @@ function syncPhotoReuseButtons() {
 // starts from a real guess instead of a blank canvas — still fully
 // editable by hand afterward, same as every other auto-fill in this app.
 // No library: for each vertical strip, score every row by how "sky-like"
-// it is (bright, blue-biased) and pick the row that best splits the strip
-// into a sky-scoring region above and a darker/greener region below — a
-// simple 1D Otsu-style threshold, run independently per strip.
+// it is (bright, blue-biased), then scan top-down for the first place that
+// score drops hard over a short window — the first real edge from open sky
+// into an obstruction (tree, fence, roofline).
+//
+// This used to instead pick whichever single split best separated the
+// WHOLE strip into two big averages (a global Otsu-style threshold). That
+// works for a clean two-tone photo, but on a real photo with several
+// background layers — sky, a distant treeline, an open field, a fence,
+// foreground grass — the global split gets dragged toward whichever
+// boundary has the single largest, most uniform region below it (usually
+// dark grass at the very bottom), even when the real skyline is a subtler,
+// higher-up edge. Scanning top-down for the first strong local edge finds
+// the real skyline instead of the "biggest region" one.
 function detectHorizonTrace() {
   const w = canvas.width;
   const h = canvas.height;
@@ -331,6 +341,10 @@ function detectHorizonTrace() {
   const data = imageData.data;
   const marginTop = Math.max(1, Math.round(h * 0.03));
   const marginBottom = Math.max(1, Math.round(h * 0.03));
+  // Local window for edge detection, scaled to the photo's height so it
+  // behaves the same across different photo resolutions.
+  const win = Math.max(4, Math.round(h * 0.025));
+  const EDGE_FLOOR = 14; // minimum brightness drop to count as a real edge, not noise/gradient
   const result = new Array(BUCKETS);
 
   for (let i = 0; i < BUCKETS; i++) {
@@ -356,7 +370,31 @@ function detectHorizonTrace() {
     const prefix = new Float64Array(h + 1);
     for (let y = 0; y < h; y++) prefix[y + 1] = prefix[y] + rowScore[y];
     const total = prefix[h];
+    const windowAvg = (from, to) => (prefix[to] - prefix[from]) / (to - from); // [from, to)
 
+    // Scan top-down for the first window-over-window brightness drop that
+    // clears the floor — the first real edge, not the strongest one
+    // anywhere in the column.
+    let firstEdge = -1;
+    const lo = marginTop + win;
+    const hi = h - marginBottom - win;
+    for (let y = lo; y <= hi; y++) {
+      const above = windowAvg(y - win, y);
+      const below = windowAvg(y, y + win);
+      if (above - below > EDGE_FLOOR) {
+        firstEdge = y;
+        break;
+      }
+    }
+
+    if (firstEdge >= 0) {
+      result[i] = firstEdge / h;
+      continue;
+    }
+
+    // No clear top-down edge (e.g. a low-contrast photo) — fall back to the
+    // old global best-split method so this strip still gets a reasonable
+    // guess instead of being left at a bare default.
     let bestSplit = -1;
     let bestScore = -Infinity;
     for (let y = marginTop; y < h - marginBottom; y++) {
@@ -370,7 +408,22 @@ function detectHorizonTrace() {
     }
     result[i] = bestSplit >= 0 ? bestSplit / h : 0.5;
   }
-  return result;
+
+  // A dense tree canopy has lots of tiny sky-through-leaves gaps, each a
+  // real (but tiny) edge in its own column — left as-is, the trace looks
+  // like noisy static across the canopy instead of one clean outline. A
+  // real obstruction (a canopy, a fence run) is wide relative to a single
+  // stray gap, so a median filter across a handful of neighboring columns
+  // keeps the true shape and throws out the single-column spikes.
+  const smoothed = result.slice();
+  const half = 3;
+  for (let i = 0; i < result.length; i++) {
+    const lo = Math.max(0, i - half);
+    const hi = Math.min(result.length - 1, i + half);
+    const window = result.slice(lo, hi + 1).slice().sort((a, b) => a - b);
+    smoothed[i] = window[Math.floor(window.length / 2)];
+  }
+  return smoothed;
 }
 
 function applyPhoto(img) {
