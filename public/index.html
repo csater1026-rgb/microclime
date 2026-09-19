@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Microclime — know your exact spot</title>
-  <meta name="description" content="Weather apps know your zip code. Microclime knows the exact corner of your yard — real sun-hours, frost risk, and what-if planting simulation for one specific spot." />
+  <title>Microclime — how much sun does this spot get?</title>
+  <meta name="description" content="Take one photo of a garden spot. See how many hours of sun it actually gets, and what to plant or water because of that." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff8a5c' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1'/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="./styles.css?v=8" />
+  <link rel="stylesheet" href="./styles.css?v=9" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -21,7 +21,7 @@
       </span>
       <div>
         <div class="brand-name">Microclime</div>
-        <div class="brand-tag">know your exact spot</div>
+        <div class="brand-tag">sun for this exact spot</div>
       </div>
     </div>
     <div class="topbar-actions">
@@ -151,29 +151,7 @@
       </div>
     </section>
 
-    <section class="panel" id="location-panel">
-      <h2 class="panel-title"><span class="step-badge">1</span>Your location</h2>
-      <p class="panel-sub">Used to place the sun in the sky. A live photo can fill this in for you.</p>
-      <div class="field-row">
-        <div class="field">
-          <label for="lat-input">Latitude</label>
-          <input type="text" id="lat-input" inputmode="decimal" placeholder="e.g. 39.7392" />
-        </div>
-        <div class="field">
-          <label for="lon-input">Longitude</label>
-          <input type="text" id="lon-input" inputmode="decimal" placeholder="e.g. -104.9903" />
-        </div>
-        <button class="btn-secondary" id="use-location-btn" type="button">Use my location</button>
-      </div>
-      <p class="field-hint" id="location-status"></p>
-
-      <div class="field-row">
-        <div class="field">
-          <label for="date-input">Date</label>
-          <input type="date" id="date-input" />
-        </div>
-      </div>
-    </section>
+    <section class="panel" id="location-panel" hidden></section>
 
     <section class="panel" id="horizon-panel">
       <h2 class="panel-title"><span class="step-badge">1</span>Photo of the spot</h2>
@@ -185,7 +163,9 @@
       <div class="photo-source-row">
         <button class="btn-primary" id="take-photo-btn" type="button">Take a photo</button>
         <button class="btn-secondary" id="upload-photo-btn" type="button">Upload a photo</button>
+        <button class="btn-secondary" id="use-location-btn" type="button">Use my location</button>
       </div>
+      <p class="field-hint" id="location-status"></p>
       <input type="file" id="camera-input" accept="image/*" capture="environment" hidden />
       <input type="file" id="file-input" accept="image/*" hidden />
 
@@ -210,7 +190,21 @@
       </div>
 
       <details class="more-tools">
-        <summary>Photo didn't look right?</summary>
+        <summary>Need to type a location or fix the photo?</summary>
+        <div class="field-row">
+          <div class="field">
+            <label for="lat-input">Latitude</label>
+            <input type="text" id="lat-input" inputmode="decimal" placeholder="39.7392" />
+          </div>
+          <div class="field">
+            <label for="lon-input">Longitude</label>
+            <input type="text" id="lon-input" inputmode="decimal" placeholder="-104.9903" />
+          </div>
+          <div class="field">
+            <label for="date-input">Date</label>
+            <input type="date" id="date-input" />
+          </div>
+        </div>
         <div class="field-row" id="heading-row" hidden>
           <div class="field">
             <label for="heading-input">Facing (degrees)</label>
@@ -332,15 +326,8 @@
     </section>
 
     <section class="panel" id="calibrate-panel" hidden>
-      <h2 class="panel-title"><span class="step-badge">4</span>Calibrate to your spot</h2>
-      <p class="panel-sub">
-        Everything above already runs automatically from live weather and this
-        spot's real sun-hours — nothing to enter. This part is optional and
-        for later: after a night passes, come back and log what actually
-        happened, and the model learns a correction for your exact spot.
-      </p>
       <details class="hourly-detail" id="calibrate-details">
-        <summary>Log what actually happened overnight (optional)</summary>
+        <summary>Optional: log last night's low</summary>
         <div class="field-row">
           <div class="field">
             <label for="observed-temp-input">Actual overnight low here (°F)</label>
@@ -358,7 +345,7 @@
     </section>
 
     <section class="panel" id="spots-panel" hidden>
-      <h2 class="panel-title"><span class="step-badge">5</span>Your yard's sun zones</h2>
+      <h2 class="panel-title"><span class="step-badge">3</span>Saved spots</h2>
       <p class="panel-sub">Every spot you've saved, grouped by how much sun it actually gets — so you know what to plant where.</p>
       <div class="spots-list" id="spots-list"></div>
 
@@ -394,12 +381,12 @@
     Built for NextStep Hacks 2026 (theme: Earth Forward) by Christian Saterfield.
   </footer>
 
-  <script src="./exif.js?v=8"></script>
-  <script src="./solar.js?v=8"></script>
-  <script src="./weather.js?v=8"></script>
-  <script src="./risk.js?v=8"></script>
-  <script src="./zones.js?v=8"></script>
-  <script src="./plantcare.js?v=8"></script>
-  <script src="./app.js?v=8"></script>
+  <script src="./exif.js?v=9"></script>
+  <script src="./solar.js?v=9"></script>
+  <script src="./weather.js?v=9"></script>
+  <script src="./risk.js?v=9"></script>
+  <script src="./zones.js?v=9"></script>
+  <script src="./plantcare.js?v=9"></script>
+  <script src="./app.js?v=9"></script>
 </body>
 </html>

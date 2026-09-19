@@ -466,9 +466,12 @@ function applyPhoto(img) {
   const detected = detectHorizonTrace();
   if (detected) {
     trace = detected;
-    traceStatus.textContent = "Horizon auto-detected from the photo — drag any point to correct it.";
+    traceStatus.textContent = "We traced what blocks the sun. Drag the line if a tree or roof looks off.";
   }
   drawCanvas();
+  if (!hasLocation()) {
+    locationStatus.textContent = "Tap Use my location so we can place the sun. Without it we can't count today's hours.";
+  }
   recompute();
 }
 
@@ -969,7 +972,7 @@ function drawSunPathOnPhoto() {
   for (const p of points) {
     const sun = p.row.status === "sun";
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
     ctx.fillStyle = sun ? "#ff8a5c" : "rgba(253,246,239,0.92)";
     ctx.fill();
     ctx.lineWidth = 2;
@@ -1147,7 +1150,7 @@ function recompute() {
   renderPlantAdvice();
   renderCalibrationLog();
   renderSpots();
-  calibratePanel.hidden = false;
+  if (calibratePanel) calibratePanel.hidden = true;
   loadWeatherAndRisk(token, rows, sunHours, baselineResult);
 }
 
@@ -1464,7 +1467,7 @@ const DEMO_NEIGHBORS = [
 ];
 
 function renderCommunity(yourFrostHours) {
-  communityPanel.hidden = false;
+  if (communityPanel) communityPanel.hidden = true;
   const rows = [
     { name: "You (this spot)", hours: yourFrostHours, you: true },
     ...DEMO_NEIGHBORS.map((n) => ({ name: n.name, hours: Math.max(0, yourFrostHours + n.offset), you: false })),

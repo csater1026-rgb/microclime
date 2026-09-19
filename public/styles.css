@@ -107,7 +107,7 @@ body {
   flex-wrap: wrap;
 }
 .hero-text { flex: 1; min-width: 260px; }
-.hero-art { display: none; }
+.hero-art { display: none !important; }
 
 .hero h1 {
   font-size: 32px;
@@ -167,8 +167,7 @@ body {
   }
   .hero h1 { font-size: 36px; }
   .hero-sub { font-size: 17px; }
-  .hero-art { display: block; flex: 0 0 240px; width: 240px; }
-  .hero-art svg { width: 100%; height: auto; display: block; }
+  .hero-art { display: none !important; }
 }
 
 .panel {
