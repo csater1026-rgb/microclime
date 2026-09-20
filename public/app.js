@@ -919,7 +919,13 @@ function angleDiff(a, b) {
 function blockedElevationFor(azimuthDeg, dense, heading, fov) {
   if (!dense) return 0; // no trace yet: assume open horizon
   const rel = angleDiff(azimuthDeg, heading);
-  if (Math.abs(rel) > fov / 2) return null;
+  // Sun is off to the side of what the photo actually shows this hour. We
+  // have no obstruction data there, and the honest default — same one used
+  // when there's no photo at all — is "assume open," not "assume blocked."
+  // Excluding these hours entirely used to make normal spots look far
+  // shadier than they are, since a single photo can't cover the sun's full
+  // daily sweep across the sky.
+  if (Math.abs(rel) > fov / 2) return 0;
   const xFrac = 0.5 + rel / fov;
   const pos = Math.min(BUCKETS - 1, Math.max(0, xFrac * BUCKETS - 0.5));
   const i0 = Math.floor(pos);
@@ -964,8 +970,7 @@ function computeSunRows(denseTrace, heading, fov, lat, lon, y, m, d) {
       status = "night";
     } else {
       const blocked = blockedElevationFor(azimuth, denseTrace, heading, fov);
-      if (blocked === null) status = "no-data";
-      else if (elevation > blocked) { status = "sun"; sunHours += 1; }
+      if (elevation > blocked) { status = "sun"; sunHours += 1; }
       else status = "shade";
     }
     rows.push({ h, elevation, azimuth, status, risk: null });
@@ -1636,7 +1641,6 @@ function renderVerdict(rows, sunHours) {
   verdictLabel.textContent = cat.label;
   const sunRows = rows.filter((r) => r.status === "sun");
   const shadeRows = rows.filter((r) => r.status === "shade");
-  const missing = rows.some((r) => r.status === "no-data");
   let when = "";
   if (sunRows.length) {
     const first = sunRows[0].h;
@@ -1647,10 +1651,7 @@ function renderVerdict(rows, sunHours) {
   }
   let why = "";
   if (shadeRows.length) {
-    why = ` The orange line is why: trees, a fence, or a roof in the photo block the sun for ${shadeRows.length} daylight hour${shadeRows.length === 1 ? "" : "s"}.`;
-  }
-  if (missing) {
-    why += " Hours when the sun is off-camera are left blank on the strip below.";
+    why = ` That's because trees, a fence, or a roof in the photo block the sun for ${shadeRows.length} daylight hour${shadeRows.length === 1 ? "" : "s"}.`;
   }
   if (!resolvedTrace()) {
     verdictBody.textContent = "Add a garden photo so we can see what blocks the sun here.";
@@ -1714,14 +1715,14 @@ function renderResults(rows, sunHours) {
   for (const r of rows) {
     const b = document.createElement("div");
     const frostClass = r.risk && r.risk.frost === "frost" ? " frost-risk" : "";
-    b.className = `hour-block ${r.status === "no-data" ? "no-data" : r.status}${frostClass}`;
+    b.className = `hour-block ${r.status}${frostClass}`;
     b.title = `${String(r.h).padStart(2, "0")}:00 — ${r.status}${r.risk ? `, ${r.risk.frost} frost risk` : ""}`;
     hourStrip.appendChild(b);
   }
 
   hourTableBody.innerHTML = rows
     .map((r) => {
-      const label = r.status === "no-data" ? "no data" : r.status;
+      const label = r.status;
       const cls = r.status === "sun" ? "status-sun" : r.status === "shade" ? "status-shade" : "";
       const elevText = r.elevation > 0 ? `${r.elevation.toFixed(1)}°` : "—";
       const azText = r.elevation > 0 ? `${r.azimuth.toFixed(0)}°` : "—";
