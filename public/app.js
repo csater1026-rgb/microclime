@@ -247,6 +247,24 @@ function startCompassListener() {
   }
 }
 
+// On touch devices, skip the in-page getUserMedia modal entirely and go
+// straight to the native file-input capture. The modal path is async
+// (it awaits getUserMedia's permission prompt before falling back), and by
+// the time that promise settles, the click() that opens the fallback
+// picker has lost the original tap's "user activation" on most mobile
+// browsers (Safari especially) — so the fallback silently does nothing and
+// it looks like the camera button is just broken. Native capture from a
+// direct, synchronous click always works and is what phones expect anyway.
+const isTouchDevice = typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
+
+function openCamera(target, fallbackInput) {
+  if (isTouchDevice) {
+    fallbackInput.click();
+    return;
+  }
+  openCameraModal(target, fallbackInput);
+}
+
 async function openCameraModal(target, fallbackInput) {
   cameraTarget = target;
   lastCompassHeading = null;
@@ -313,7 +331,7 @@ function captureFromVideo() {
   img.src = shot.toDataURL("image/jpeg", 0.92);
 }
 
-takePhotoBtn.addEventListener("click", () => openCameraModal("horizon", cameraInput));
+takePhotoBtn.addEventListener("click", () => openCamera("horizon", cameraInput));
 cameraClose.addEventListener("click", closeCameraModal);
 cameraCancelBtn.addEventListener("click", closeCameraModal);
 cameraCaptureBtn.addEventListener("click", captureFromVideo);
@@ -791,7 +809,7 @@ placementFindBtn.addEventListener("click", () => {
   runPlacementLookup({ plantName: name });
 });
 
-placementTakePhotoBtn.addEventListener("click", () => openCameraModal("placement", placementCameraInput));
+placementTakePhotoBtn.addEventListener("click", () => openCamera("placement", placementCameraInput));
 placementUploadPhotoBtn.addEventListener("click", () => placementFileInput.click());
 
 function loadPlacementPhotoFrom(input) {
@@ -1216,7 +1234,7 @@ function renderPlantAnalysis(a, mode) {
     </div>`;
 }
 
-plantTakePhotoBtn.addEventListener("click", () => openCameraModal("plant", plantCameraInput));
+plantTakePhotoBtn.addEventListener("click", () => openCamera("plant", plantCameraInput));
 plantUploadPhotoBtn.addEventListener("click", () => plantFileInput.click());
 
 function loadPlantPhotoFrom(input) {
@@ -1451,7 +1469,7 @@ compareFacingChips.querySelectorAll(".chip").forEach((chip) => {
   });
 });
 
-compareTakePhotoBtn.addEventListener("click", () => openCameraModal("compare", compareCameraInput));
+compareTakePhotoBtn.addEventListener("click", () => openCamera("compare", compareCameraInput));
 compareUploadPhotoBtn.addEventListener("click", () => compareFileInput.click());
 
 function loadComparePhotoFrom(input) {
