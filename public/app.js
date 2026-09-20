@@ -111,11 +111,6 @@ observedTempInput.addEventListener("input", () => { observedTempInput.dataset.au
 const saveObservationBtn = el("save-observation-btn");
 const calibrationStatus = el("calibration-status");
 const calibrationLogEl = el("calibration-log");
-const whatifRow = el("whatif-row");
-const saveBaselineBtn = el("save-baseline-btn");
-const resetBaselineBtn = el("reset-baseline-btn");
-const whatifPanel = el("whatif-panel");
-const whatifCompare = el("whatif-compare");
 const saveSpotRow = el("save-spot-row");
 const spotNameInput = el("spot-name-input");
 const saveSpotBtn = el("save-spot-btn");
@@ -145,13 +140,6 @@ let currentFrostHours = 0;
 let currentHeatHours = 0;
 let lastWeatherByHour = null;
 let lastWeatherBiasC = 0;
-
-// Phase 4 — what-if simulation. The baseline is a session-only snapshot of
-// the horizon "as it really is right now" (trace + heading + fov). Once
-// saved, further edits to the live trace are a hypothetical — plant a tree,
-// trim one back — and every recompute shows both real and hypothetical
-// side by side instead of just overwriting the real picture.
-let baseline = null; // { trace, heading, fov } or null
 
 function initInputs() {
   latInput.value = state.lat ?? "";
@@ -463,12 +451,8 @@ function applyPhoto(img) {
   headingRow.hidden = false;
   if (facingRow) facingRow.hidden = false;
   if (photoCaption) photoCaption.hidden = false;
-  whatifRow.hidden = false;
   saveSpotRow.hidden = false;
   saveSpotStatus.textContent = "";
-  baseline = null;
-  resetBaselineBtn.hidden = true;
-  saveBaselineBtn.textContent = 'Save as "how it is now"';
   drawCanvas(); // draws the raw image only (trace is still empty) — needed before pixel analysis
   const detected = detectHorizonTrace();
   if (detected) {
@@ -573,24 +557,6 @@ autoDetectBtn.addEventListener("click", () => {
   } else {
     traceStatus.textContent = "Couldn't read a horizon from this photo — try a different one.";
   }
-  drawCanvas();
-  recompute();
-});
-
-saveBaselineBtn.addEventListener("click", () => {
-  baseline = { trace: trace.slice(), heading: state.heading, fov: state.fov };
-  resetBaselineBtn.hidden = false;
-  saveBaselineBtn.textContent = 'Update "how it is now"';
-  recompute();
-});
-
-resetBaselineBtn.addEventListener("click", () => {
-  if (!baseline) return;
-  trace = baseline.trace.slice();
-  state.heading = baseline.heading;
-  state.fov = baseline.fov;
-  initInputs();
-  saveState();
   drawCanvas();
   recompute();
 });
@@ -707,13 +673,9 @@ spotsList.addEventListener("click", (e) => {
     canvas.height = Math.round(canvas.width * 0.625);
     canvasWrap.hidden = false;
     headingRow.hidden = false;
-    whatifRow.hidden = false;
     saveSpotRow.hidden = false;
     saveSpotStatus.textContent = "";
     spotNameInput.value = spot.name;
-    baseline = null;
-    resetBaselineBtn.hidden = true;
-    saveBaselineBtn.textContent = 'Save as "how it is now"';
     drawCanvas();
     recompute();
   } else if (e.target.classList.contains("spot-delete-btn")) {
@@ -964,8 +926,7 @@ function blockedElevationFor(azimuthDeg, dense, heading, fov) {
 }
 
 // Fills gaps the same way resolvedTrace() does, for an arbitrary sparse
-// trace array (used to resolve a saved baseline independently of the live
-// in-progress trace).
+// trace array (used for each saved spot, and the comparison candidate).
 function resolveSparseTrace(sparse) {
   const setIdx = [];
   for (let i = 0; i < BUCKETS; i++) if (sparse[i] !== null) setIdx.push(i);
@@ -986,8 +947,8 @@ function resolveSparseTrace(sparse) {
 }
 
 // Computes hour-by-hour sun/shade rows for an arbitrary horizon (used for
-// the live trace, a saved baseline, and each saved spot — each with its own
-// coordinates, since a spot's saved location shouldn't shift if the
+// the live trace, each saved spot, and the comparison candidate — each with
+// its own coordinates, since a spot's saved location shouldn't shift if the
 // currently-loaded working location changes).
 function computeSunRows(denseTrace, heading, fov, lat, lon, y, m, d) {
   const rows = [];
@@ -1091,11 +1052,6 @@ function recompute() {
 
   const { rows, sunHours } = computeSunRows(resolvedTrace(), state.heading, state.fov, state.lat, state.lon, y, m, d);
 
-  let baselineResult = null;
-  if (baseline) {
-    baselineResult = computeSunRows(resolveSparseTrace(baseline.trace), baseline.heading, baseline.fov, state.lat, state.lon, y, m, d);
-  }
-
   currentRows = rows;
   currentSunHours = sunHours;
   drawCanvas();
@@ -1104,7 +1060,7 @@ function recompute() {
   renderCalibrationLog();
   renderSpots();
   if (calibratePanel) calibratePanel.hidden = true;
-  loadWeatherAndRisk(token, rows, sunHours, baselineResult);
+  loadWeatherAndRisk(token, rows, sunHours);
 }
 
 // Pre-fills the calibration temperature with tonight's coldest predicted
@@ -1140,7 +1096,7 @@ function applyRisk(rows, sunHours, byHour, biasC) {
   return { frostHours, heatHours };
 }
 
-async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
+async function loadWeatherAndRisk(token, rows, sunHours) {
   weatherStatus.textContent = "Loading live forecast…";
   plantCare.hidden = true;
   try {
@@ -1156,24 +1112,16 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
     currentHeatHours = heatHours;
     prefillCalibrationDefaults(rows);
 
-    let baselineFrostHours = null;
-    if (baselineResult) {
-      const r = applyRisk(baselineResult.rows, baselineResult.sunHours, byHour, biasC);
-      baselineFrostHours = r.frostHours;
-    }
-
     weatherStatus.textContent = "Live forecast loaded.";
     renderTodayAction(rows, sunHours, frostHours, heatHours);
     renderPlantAdvice();
 
     renderResults(rows, sunHours);
-    renderWhatif(sunHours, frostHours, baselineResult ? baselineResult.sunHours : null, baselineFrostHours);
     renderCommunity(frostHours);
     renderPlantCare(rows);
   } catch (err) {
     if (token !== recomputeToken) return;
     weatherStatus.textContent = `Forecast unavailable for this date (${err.message}). Live forecasts only cover the near-term window — sun-hours above are still accurate.`;
-    renderWhatif(sunHours, null, baselineResult ? baselineResult.sunHours : null, null);
     communityPanel.hidden = true;
     plantCare.hidden = true;
   }
@@ -1556,34 +1504,6 @@ function renderCommunity(yourFrostHours) {
       </div>`;
     })
     .join("");
-}
-
-function statHtml(label, baseVal, curVal, unit, higherIsBetter) {
-  const delta = curVal - baseVal;
-  let cls = "same", arrow = "";
-  if (delta !== 0) {
-    const better = higherIsBetter ? delta > 0 : delta < 0;
-    cls = better ? "better" : "worse";
-    arrow = delta > 0 ? "+" : "";
-  }
-  return `<div class="whatif-stat">
-    <div class="stat-label">${label}</div>
-    <div class="stat-values">${baseVal}${unit}<span class="stat-arrow">→</span>${curVal}${unit}</div>
-    <div class="stat-delta ${cls}">${delta === 0 ? "no change" : `${arrow}${delta}${unit}`}</div>
-  </div>`;
-}
-
-function renderWhatif(sunHours, frostHours, baselineSunHours, baselineFrostHours) {
-  if (baselineSunHours === null) {
-    whatifPanel.hidden = true;
-    return;
-  }
-  whatifPanel.hidden = false;
-  const parts = [statHtml("Sun-hours per day", baselineSunHours, sunHours, "h", true)];
-  if (frostHours !== null && baselineFrostHours !== null) {
-    parts.push(statHtml("Hours of frost risk tonight", baselineFrostHours, frostHours, "h", false));
-  }
-  whatifCompare.innerHTML = parts.join("");
 }
 
 function sunCategory(sunHours) {

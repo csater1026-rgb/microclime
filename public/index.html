@@ -196,13 +196,24 @@
         </div>
       </details>
 
-      <details class="more-tools" id="whatif-details">
-        <summary>Optional: pretend you added or trimmed a tree</summary>
-        <div class="field-row" id="whatif-row" hidden>
-          <button class="btn-secondary" id="save-baseline-btn" type="button">Save how it looks now</button>
-          <button class="btn-secondary" id="reset-baseline-btn" type="button" hidden>Undo pretend change</button>
-          <p class="field-hint" id="whatif-hint">Save the line, then drag it to test an idea. This is optional.</p>
+      <details class="more-tools" id="compare-details">
+        <summary>Compare different planting spots</summary>
+        <div class="field-row">
+          <p class="field-hint">Take a photo of the other spot you're considering — same plant, same day, so it's a fair comparison.</p>
         </div>
+        <div class="photo-source-row">
+          <button class="btn-primary" id="compare-take-photo-btn" type="button">Take a photo of the other spot</button>
+          <button class="btn-secondary" id="compare-upload-photo-btn" type="button">Upload a photo</button>
+        </div>
+        <input type="file" id="compare-camera-input" accept="image/*" capture="environment" hidden />
+        <input type="file" id="compare-file-input" accept="image/*" hidden />
+        <div class="chip-row" id="compare-facing-chips" hidden>
+          <button type="button" class="chip" data-heading="0">North</button>
+          <button type="button" class="chip" data-heading="90">East</button>
+          <button type="button" class="chip active" data-heading="180">South</button>
+          <button type="button" class="chip" data-heading="270">West</button>
+        </div>
+        <div id="compare-result"></div>
       </details>
 
       <div class="field-row" id="save-spot-row" hidden>
@@ -250,26 +261,6 @@
         <div class="plant-advice" id="plant-advice"></div>
       </div>
 
-      <details class="more-tools" id="compare-details">
-        <summary>Thinking of moving this plant? Compare this spot to another</summary>
-        <div class="field-row">
-          <p class="field-hint">Take a photo of the other spot you're considering — same plant, same day, so it's a fair comparison.</p>
-        </div>
-        <div class="photo-source-row">
-          <button class="btn-primary" id="compare-take-photo-btn" type="button">Take a photo of the other spot</button>
-          <button class="btn-secondary" id="compare-upload-photo-btn" type="button">Upload a photo</button>
-        </div>
-        <input type="file" id="compare-camera-input" accept="image/*" capture="environment" hidden />
-        <input type="file" id="compare-file-input" accept="image/*" hidden />
-        <div class="chip-row" id="compare-facing-chips" hidden>
-          <button type="button" class="chip" data-heading="0">North</button>
-          <button type="button" class="chip" data-heading="90">East</button>
-          <button type="button" class="chip active" data-heading="180">South</button>
-          <button type="button" class="chip" data-heading="270">West</button>
-        </div>
-        <div id="compare-result"></div>
-      </details>
-
       <details class="plant-care" id="plant-care" hidden>
         <summary>
           <span class="plant-care-title">Optional: close-up photo of one plant</span>
@@ -310,11 +301,6 @@
           </table>
         </div>
       </details>
-    </section>
-
-    <section class="panel" id="whatif-panel" hidden>
-      <h2 class="panel-title">What if you made that change?</h2>
-      <div class="whatif-compare" id="whatif-compare"></div>
     </section>
 
     <section class="panel" id="calibrate-panel" hidden>
