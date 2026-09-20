@@ -679,6 +679,16 @@ input[type="file"] {
 .whatif-stat .stat-delta.worse { color: var(--danger); }
 .whatif-stat .stat-delta.same { color: var(--text-faint); font-weight: 400; }
 
+.compare-thumb {
+  display: block;
+  width: 100%;
+  max-height: 110px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+
 .spots-list {
   display: flex;
   flex-direction: column;

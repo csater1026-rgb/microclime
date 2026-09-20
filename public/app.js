@@ -1316,7 +1316,7 @@ function renderWeekProjection(days) {
   const avgB = (days.reduce((s, d) => s + d.sunB, 0) / days.length).toFixed(1);
   return `<div class="compare-projection">
     <h4 class="grow-title">This week (real forecast — good for a temporary spot)</h4>
-    <div class="table-scroll"><table class="hour-table"><thead><tr><th>Day</th><th>This spot</th><th>Other spot</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="table-scroll"><table class="hour-table"><thead><tr><th>Day</th><th>Spot A (yours)</th><th>Spot B (new photo)</th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="field-hint">Averages ${avgA}h vs ${avgB}h of sun per day this week. ❄ = frost risk that night, 🔥 = heat stress that day.</p>
   </div>`;
 }
@@ -1328,12 +1328,12 @@ function renderYearProjection(months) {
   const winsA = months.filter((mo) => mo.sunA > mo.sunB).length;
   const winsB = months.filter((mo) => mo.sunB > mo.sunA).length;
   let verdict;
-  if (winsA > winsB) verdict = `This spot gets more sun in ${winsA} of the next 12 months — the better pick for a permanent planting.`;
-  else if (winsB > winsA) verdict = `The other spot gets more sun in ${winsB} of the next 12 months — the better pick for a permanent planting.`;
+  if (winsA > winsB) verdict = `Spot A gets more sun in ${winsA} of the next 12 months — the better pick for a permanent planting.`;
+  else if (winsB > winsA) verdict = `Spot B gets more sun in ${winsB} of the next 12 months — the better pick for a permanent planting.`;
   else verdict = "Both spots come out ahead in an equal number of months — genuinely close year-round.";
   return `<div class="compare-projection">
     <h4 class="grow-title">This year (sun-hours trend — good for a permanent spot)</h4>
-    <div class="table-scroll"><table class="hour-table"><thead><tr><th>Month</th><th>This spot</th><th>Other spot</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="table-scroll"><table class="hour-table"><thead><tr><th>Month</th><th>Spot A (yours)</th><th>Spot B (new photo)</th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="field-hint">Averages ${avgA}h vs ${avgB}h of sun per day across the year, real astronomy, no weather guess this far out. ${verdict}</p>
   </div>`;
 }
@@ -1343,30 +1343,48 @@ function compareVerdict(sunA, burnA, frostA, sunB, burnB, frostB) {
   if (plant && plant.id !== "unsure") {
     const fitsA = sunA >= plant.min && sunA <= plant.max;
     const fitsB = sunB >= plant.min && sunB <= plant.max;
-    if (fitsA && !fitsB) return `<b>This spot is better</b> for ${plant.label.toLowerCase()} — it gets enough sun (${sunA}h) and the other spot doesn't (${sunB}h).`;
-    if (fitsB && !fitsA) return `<b>The other spot is better</b> for ${plant.label.toLowerCase()} — it gets enough sun (${sunB}h) and this spot doesn't (${sunA}h).`;
+    if (fitsA && !fitsB) return `<b>Spot A is better</b> for ${plant.label.toLowerCase()} — it gets enough sun (${sunA}h) and Spot B doesn't (${sunB}h).`;
+    if (fitsB && !fitsA) return `<b>Spot B is better</b> for ${plant.label.toLowerCase()} — it gets enough sun (${sunB}h) and Spot A doesn't (${sunA}h).`;
   }
 
   const riskA = burnRank[burnA.severity] + (frostA > 0 ? 1 : 0);
   const riskB = burnRank[burnB.severity] + (frostB > 0 ? 1 : 0);
-  if (riskA < riskB) return `<b>This spot is better</b> — lower sunburn/frost risk (${sunA}h of sun here vs ${sunB}h there).`;
-  if (riskB < riskA) return `<b>The other spot is better</b> — lower sunburn/frost risk (${sunB}h of sun there vs ${sunA}h here).`;
-  if (sunA > sunB) return `About the same risk either way. This spot gets more sun (${sunA}h vs ${sunB}h).`;
-  if (sunB > sunA) return `About the same risk either way. The other spot gets more sun (${sunB}h vs ${sunA}h).`;
+  if (riskA < riskB) return `<b>Spot A is better</b> — lower sunburn/frost risk (${sunA}h of sun there vs ${sunB}h at Spot B).`;
+  if (riskB < riskA) return `<b>Spot B is better</b> — lower sunburn/frost risk (${sunB}h of sun there vs ${sunA}h at Spot A).`;
+  if (sunA > sunB) return `About the same risk either way. Spot A gets more sun (${sunA}h vs ${sunB}h).`;
+  if (sunB > sunA) return `About the same risk either way. Spot B gets more sun (${sunB}h vs ${sunA}h).`;
   return `These two spots are about the same — ${sunA}h of sun, similar risk either way.`;
 }
 
-function renderCompareResult(sunA, burnA, frostA, sunB, burnB, frostB) {
+// Small labeled preview so it's obvious at a glance which photo is which —
+// testers reported having no way to tell which set of numbers belonged to
+// which spot once both were on screen.
+function thumbDataUrl(img, maxW = 160) {
+  if (!img) return null;
+  const w = maxW;
+  const h = Math.max(1, Math.round((maxW * img.height) / img.width));
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  c.getContext("2d").drawImage(img, 0, 0, w, h);
+  return c.toDataURL("image/jpeg", 0.75);
+}
+
+function renderCompareResult(sunA, burnA, frostA, sunB, burnB, frostB, thumbA, thumbB) {
+  const imgA = thumbA ? `<img class="compare-thumb" src="${thumbA}" alt="Spot A photo" />` : "";
+  const imgB = thumbB ? `<img class="compare-thumb" src="${thumbB}" alt="Spot B photo" />` : "";
   compareResult.innerHTML = `
     <h4 class="grow-title">Today</h4>
     <div class="whatif-compare">
       <div class="whatif-stat">
-        <div class="stat-label">This spot</div>
+        ${imgA}
+        <div class="stat-label">Spot A — your photo above</div>
         <div class="stat-values">${sunA}h sun</div>
         <div class="stat-delta">${burnA.label}${frostA > 0 ? `, ${frostA}h frost risk` : ""}</div>
       </div>
       <div class="whatif-stat">
-        <div class="stat-label">Other spot</div>
+        ${imgB}
+        <div class="stat-label">Spot B — the photo you just uploaded</div>
         <div class="stat-values">${sunB}h sun</div>
         <div class="stat-delta">${burnB.label}${frostB > 0 ? `, ${frostB}h frost risk` : ""}</div>
       </div>
@@ -1406,7 +1424,7 @@ async function handleComparePhoto(img, skipStore) {
   const frostA = frostRiskHours(currentRows).length;
   const frostB = frostRiskHours(rowsB).length;
 
-  renderCompareResult(currentSunHours, burnA, frostA, sunB, burnB, frostB);
+  renderCompareResult(currentSunHours, burnA, frostA, sunB, burnB, frostB, thumbDataUrl(photoImg), thumbDataUrl(img));
 
   // Week + year projections don't block the daily verdict above — they
   // render in as soon as they're ready, week first since it needs a
