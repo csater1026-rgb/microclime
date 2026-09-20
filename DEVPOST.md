@@ -34,7 +34,7 @@ javascript, html5, css3, vercel, vercel-serverless-functions, open-meteo, google
 
 **Video:** YouTube unlisted link (you still upload the file)
 
-**Images:** welcome screen, photo with the sun-path dots, the hours verdict, plant picker with watering/sunburn/frost advice, spot comparison (today + week + year)
+**Images:** welcome screen, photo of the spot, the hours verdict, plant picker with watering/sunburn/frost advice, spot comparison (today + week + year)
 
 ⚠️ If the 5 images already uploaded on Devpost were generated earlier in the build, they're almost certainly from the old UI (before the welcome screen, before the horizon line was removed, before week/year comparison). Replace them with fresh screenshots of the current site before submitting.
 
@@ -50,7 +50,7 @@ This one's personal. My mom got into gardening this year and her plants kept get
 
 ## What it does
 
-You take one photo of your yard, standing right where your plant already is, and Microclime traces the real skyline from it automatically, wherever trees, fences, or your roof block the sky, no line to drag by hand. Then it uses real solar position astronomy, actual trigonometry, not an API call, combined with that traced horizon to calculate hour by hour when that spot is in sun or shade for any day of the year, and draws it right on your photo as sun-path dots. It pulls in live weather too and adjusts frost and heat risk for how much sun that spot got, then tells you a real watering schedule, sunburn risk, and frost risk for whatever you're growing.
+You take one photo of your yard, standing right where your plant already is, and Microclime traces the real skyline from it automatically, wherever trees, fences, or your roof block the sky, no line to drag by hand. Then it uses real solar position astronomy, actual trigonometry, not an API call, combined with that traced horizon to calculate hour by hour when that spot is in sun or shade for any day of the year, and lays it out as a plain hour-by-hour breakdown. It pulls in live weather too and adjusts frost and heat risk for how much sun that spot got, then tells you a real watering schedule, sunburn risk, and frost risk for whatever you're growing.
 
 Thinking about moving that plant? Take a photo of the other spot you're considering and get a real head-to-head verdict, today, a week out with the real forecast, and a year out on pure solar trend, so the "better" spot isn't just better for today. No accounts. Photos stay on your device.
 
@@ -82,4 +82,4 @@ A real shared neighborhood layer, and more nights of calibration so the frost nu
 - Description: NextStep Hacks 2026 (Earth Forward). Live: https://microclime.vercel.app  Repo: https://github.com/csater1026-rgb/microclime
 - Visibility: Unlisted
 
-If you re-cut the video, keep it under 3 minutes: welcome screen, photo, sun-path dots on the picture (no line), hours verdict, tap a plant (watering schedule + sunburn + frost), then the spot comparison (today, week, year). Skip the extra panels.
+If you re-cut the video, keep it under 5 minutes: welcome screen, photo of the spot, hours verdict, tap a plant (watering schedule + sunburn + frost), then the spot comparison (today, week, year). Skip the extra panels.

@@ -845,8 +845,7 @@ function drawCanvas() {
     ctx.drawImage(photoImg, 0, 0, canvas.width, canvas.height);
   } else {
     // No photo loaded (e.g. a saved spot reopened without its original
-    // photo) — neutral background so the sun-path dots still have
-    // something to render on.
+    // photo) — neutral background instead of a blank canvas.
     ctx.fillStyle = "#fbf1e6";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
@@ -854,57 +853,10 @@ function drawCanvas() {
   // The traced horizon itself is never drawn anymore — it's still detected
   // automatically from the photo's pixels and drives the real sun-hours
   // math underneath, but showing it as an editable line on screen was a
-  // technical detail that didn't help anyone decide anything. What the
-  // user actually needs to see is where the sun sits (drawSunPathOnPhoto).
-  if (!resolvedTrace()) return;
-  drawSunPathOnPhoto();
-}
-
-function sunPointOnPhoto(azimuth, elevation) {
-  if (elevation <= 0) return null;
-  const rel = angleDiff(azimuth, state.heading);
-  if (Math.abs(rel) > state.fov / 2) return null;
-  const xFrac = 0.5 + rel / state.fov;
-  const yFrac = 0.5 - elevation / VERTICAL_FOV;
-  if (xFrac < 0 || xFrac > 1 || yFrac < -0.08 || yFrac > 1.05) return null;
-  return { x: xFrac * canvas.width, y: Math.max(8, Math.min(canvas.height - 8, yFrac * canvas.height)) };
-}
-
-function drawSunPathOnPhoto() {
-  if (!currentRows.length) return;
-  const points = [];
-  for (const r of currentRows) {
-    const pt = sunPointOnPhoto(r.azimuth, r.elevation);
-    if (!pt) continue;
-    points.push({ ...pt, row: r });
-  }
-  if (points.length < 1) return;
-
-  ctx.beginPath();
-  ctx.strokeStyle = "rgba(255, 185, 140, 0.85)";
-  ctx.lineWidth = 2;
-  ctx.setLineDash([3, 5]);
-  points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  for (const p of points) {
-    const sun = p.row.status === "sun";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
-    ctx.fillStyle = sun ? "#ff8a5c" : "rgba(253,246,239,0.92)";
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = sun ? "#c45a2c" : "#7c5cb8";
-    ctx.stroke();
-
-    if (p.row.h === 8 || p.row.h === 12 || p.row.h === 16) {
-      ctx.fillStyle = "rgba(43,31,34,0.85)";
-      ctx.font = "600 11px -apple-system, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(formatHour(p.row.h).replace(":00 ", ""), p.x, p.y - 10);
-    }
-  }
+  // technical detail that didn't help anyone decide anything. The photo
+  // just shows the spot; the hour-by-hour breakdown lives in the results
+  // panel below, where every hour actually fits instead of only the ones
+  // whose elevation happens to land inside the frame.
 }
 
 // --- Blocked-elevation lookup ---
