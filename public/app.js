@@ -1285,8 +1285,101 @@ plantFileInput.addEventListener("change", () => loadPlantPhotoFrom(plantFileInpu
 
 let candidateHeading = 180;
 let candidatePhotoImg = null;
+let candidateTrace = null; // last successfully-detected dense trace for the candidate photo
 
 const burnRank = { none: 0, mild: 1, moderate: 2, severe: 3 };
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function addDays(y, m, d, days) {
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + days);
+  return { y: dt.getFullYear(), m: dt.getMonth() + 1, d: dt.getDate() };
+}
+function addMonths(y, m, d, months) {
+  const dt = new Date(y, m - 1, d);
+  dt.setMonth(dt.getMonth() + months);
+  return { y: dt.getFullYear(), m: dt.getMonth() + 1, d: dt.getDate() };
+}
+function isoDate(o) {
+  return `${o.y}-${String(o.m).padStart(2, "0")}-${String(o.d).padStart(2, "0")}`;
+}
+
+// Real forecast for the next 7 days — good for a temporary spot (a planter
+// box you might move soon), since it carries real frost/heat risk, not
+// just sun-hours. Open-Meteo's free forecast only reaches ~16 days out, so
+// this is as far as a weather-backed projection can honestly go.
+async function computeWeekProjection(traceA, headingA, fovA, traceB, headingB, fovB, lat, lon, y, m, d) {
+  const start = { y, m, d };
+  const end = addDays(y, m, d, 6);
+  const byDate = await Weather.fetchRange(lat, lon, isoDate(start), isoDate(end));
+  const biasC = lastWeatherBiasC || 0;
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const dt = addDays(y, m, d, i);
+    const hourly = byDate.get(isoDate(dt));
+    const rA = computeSunRows(traceA, headingA, fovA, lat, lon, dt.y, dt.m, dt.d);
+    const rB = computeSunRows(traceB, headingB, fovB, lat, lon, dt.y, dt.m, dt.d);
+    let frostA = 0, heatA = 0, frostB = 0, heatB = 0;
+    if (hourly) {
+      const byHour = new Map(hourly.map((w) => [w.hour, w]));
+      const riskA = applyRisk(rA.rows, rA.sunHours, byHour, biasC);
+      const riskB = applyRisk(rB.rows, rB.sunHours, byHour, biasC);
+      frostA = riskA.frostHours; heatA = riskA.heatHours;
+      frostB = riskB.frostHours; heatB = riskB.heatHours;
+    }
+    days.push({ dt, sunA: rA.sunHours, sunB: rB.sunHours, frostA, heatA, frostB, heatB });
+  }
+  return days;
+}
+
+// Pure solar-position astronomy across the next 12 months — no weather
+// (Open-Meteo doesn't forecast that far out), but the sun's path for any
+// future date is exactly predictable, so this honestly answers "is this
+// still the better spot once the seasons change" for a permanent planting.
+function computeYearProjection(traceA, headingA, fovA, traceB, headingB, fovB, lat, lon, y, m, d) {
+  const months = [];
+  for (let i = 0; i < 12; i++) {
+    const dt = addMonths(y, m, 15, i);
+    const rA = computeSunRows(traceA, headingA, fovA, lat, lon, dt.y, dt.m, dt.d);
+    const rB = computeSunRows(traceB, headingB, fovB, lat, lon, dt.y, dt.m, dt.d);
+    months.push({ dt, sunA: rA.sunHours, sunB: rB.sunHours });
+  }
+  return months;
+}
+
+function renderWeekProjection(days) {
+  const rows = days.map(({ dt, sunA, sunB, frostA, heatA, frostB, heatB }, i) => {
+    const label = i === 0 ? "Today" : DAY_NAMES[new Date(dt.y, dt.m - 1, dt.d).getDay()];
+    const flagsA = `${frostA > 0 ? " ❄" : ""}${heatA > 0 ? " 🔥" : ""}`;
+    const flagsB = `${frostB > 0 ? " ❄" : ""}${heatB > 0 ? " 🔥" : ""}`;
+    return `<tr><td>${label}</td><td>${sunA}h${flagsA}</td><td>${sunB}h${flagsB}</td></tr>`;
+  }).join("");
+  const avgA = (days.reduce((s, d) => s + d.sunA, 0) / days.length).toFixed(1);
+  const avgB = (days.reduce((s, d) => s + d.sunB, 0) / days.length).toFixed(1);
+  return `<div class="compare-projection">
+    <h4 class="grow-title">This week (real forecast — good for a temporary spot)</h4>
+    <div class="table-scroll"><table class="hour-table"><thead><tr><th>Day</th><th>This spot</th><th>Other spot</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="field-hint">Averages ${avgA}h vs ${avgB}h of sun per day this week. ❄ = frost risk that night, 🔥 = heat stress that day.</p>
+  </div>`;
+}
+
+function renderYearProjection(months) {
+  const rows = months.map(({ dt, sunA, sunB }) => `<tr><td>${MONTH_NAMES[dt.m - 1]}</td><td>${sunA}h</td><td>${sunB}h</td></tr>`).join("");
+  const avgA = (months.reduce((s, mo) => s + mo.sunA, 0) / months.length).toFixed(1);
+  const avgB = (months.reduce((s, mo) => s + mo.sunB, 0) / months.length).toFixed(1);
+  const winsA = months.filter((mo) => mo.sunA > mo.sunB).length;
+  const winsB = months.filter((mo) => mo.sunB > mo.sunA).length;
+  let verdict;
+  if (winsA > winsB) verdict = `This spot gets more sun in ${winsA} of the next 12 months — the better pick for a permanent planting.`;
+  else if (winsB > winsA) verdict = `The other spot gets more sun in ${winsB} of the next 12 months — the better pick for a permanent planting.`;
+  else verdict = "Both spots come out ahead in an equal number of months — genuinely close year-round.";
+  return `<div class="compare-projection">
+    <h4 class="grow-title">This year (sun-hours trend — good for a permanent spot)</h4>
+    <div class="table-scroll"><table class="hour-table"><thead><tr><th>Month</th><th>This spot</th><th>Other spot</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="field-hint">Averages ${avgA}h vs ${avgB}h of sun per day across the year, real astronomy, no weather guess this far out. ${verdict}</p>
+  </div>`;
+}
 
 function compareVerdict(sunA, burnA, frostA, sunB, burnB, frostB) {
   const plant = PlantCare.PLANTS.find((p) => p.id === state.plantId);
@@ -1308,6 +1401,7 @@ function compareVerdict(sunA, burnA, frostA, sunB, burnB, frostB) {
 
 function renderCompareResult(sunA, burnA, frostA, sunB, burnB, frostB) {
   compareResult.innerHTML = `
+    <h4 class="grow-title">Today</h4>
     <div class="whatif-compare">
       <div class="whatif-stat">
         <div class="stat-label">This spot</div>
@@ -1320,10 +1414,11 @@ function renderCompareResult(sunA, burnA, frostA, sunB, burnB, frostB) {
         <div class="stat-delta">${burnB.label}${frostB > 0 ? `, ${frostB}h frost risk` : ""}</div>
       </div>
     </div>
-    <p class="panel-sub">${compareVerdict(sunA, burnA, frostA, sunB, burnB, frostB)}</p>`;
+    <p class="panel-sub">${compareVerdict(sunA, burnA, frostA, sunB, burnB, frostB)}</p>
+    <p class="plant-analysis-status" id="compare-projection-status">Loading week and year projections…</p>`;
 }
 
-function handleComparePhoto(img, skipStore) {
+async function handleComparePhoto(img, skipStore) {
   if (!skipStore) candidatePhotoImg = img;
   compareFacingChips.hidden = false;
   if (!hasLocation() || !currentRows.length) {
@@ -1342,8 +1437,10 @@ function handleComparePhoto(img, skipStore) {
     compareResult.innerHTML = `<p class="plant-analysis-status error">Couldn't read a horizon from that photo — try a clearer one.</p>`;
     return;
   }
+  candidateTrace = detected;
 
   const [y, m, d] = (state.date || defaultState().date).split("-").map(Number);
+  const traceA = resolvedTrace();
   const { sunHours: sunB, rows: rowsB } = computeSunRows(detected, candidateHeading, state.fov, state.lat, state.lon, y, m, d);
   if (lastWeatherByHour) applyRisk(rowsB, sunB, lastWeatherByHour, lastWeatherBiasC);
 
@@ -1353,6 +1450,22 @@ function handleComparePhoto(img, skipStore) {
   const frostB = frostRiskHours(rowsB).length;
 
   renderCompareResult(currentSunHours, burnA, frostA, sunB, burnB, frostB);
+
+  // Week + year projections don't block the daily verdict above — they
+  // render in as soon as they're ready, week first since it needs a
+  // network fetch and year is pure local math.
+  const yearHtml = renderYearProjection(
+    computeYearProjection(traceA, state.heading, state.fov, candidateTrace, candidateHeading, state.fov, state.lat, state.lon, y, m, d)
+  );
+  let weekHtml;
+  try {
+    const weekDays = await computeWeekProjection(traceA, state.heading, state.fov, candidateTrace, candidateHeading, state.fov, state.lat, state.lon, y, m, d);
+    weekHtml = renderWeekProjection(weekDays);
+  } catch {
+    weekHtml = `<p class="field-hint">Couldn't load a week-ahead forecast for this location right now — showing the year trend only.</p>`;
+  }
+  const status = document.getElementById("compare-projection-status");
+  if (status) status.outerHTML = weekHtml + yearHtml;
 }
 
 compareFacingChips.querySelectorAll(".chip").forEach((chip) => {
