@@ -81,7 +81,6 @@ const ctx = canvas.getContext("2d");
 const headingRow = el("heading-row");
 const headingInput = el("heading-input");
 const fovInput = el("fov-input");
-const clearTraceBtn = el("clear-trace-btn");
 const autoDetectBtn = el("auto-detect-btn");
 const traceStatus = el("trace-status");
 const resultsPanel = el("results-panel");
@@ -93,6 +92,12 @@ const plantTakePhotoBtn = el("plant-take-photo-btn");
 const plantUploadPhotoBtn = el("plant-upload-photo-btn");
 const plantCameraInput = el("plant-camera-input");
 const plantFileInput = el("plant-file-input");
+const compareTakePhotoBtn = el("compare-take-photo-btn");
+const compareUploadPhotoBtn = el("compare-upload-photo-btn");
+const compareCameraInput = el("compare-camera-input");
+const compareFileInput = el("compare-file-input");
+const compareFacingChips = el("compare-facing-chips");
+const compareResult = el("compare-result");
 const plantAnalysisResult = el("plant-analysis-result");
 const summarizeBtn = el("summarize-btn");
 const summarizeRow = el("summarize-row");
@@ -138,6 +143,8 @@ let currentRows = [];
 let currentSunHours = 0;
 let currentFrostHours = 0;
 let currentHeatHours = 0;
+let lastWeatherByHour = null;
+let lastWeatherBiasC = 0;
 
 // Phase 4 — what-if simulation. The baseline is a session-only snapshot of
 // the horizon "as it really is right now" (trace + heading + fov). Once
@@ -295,6 +302,8 @@ function captureFromVideo() {
     closeCameraModal();
     if (target === "plant") {
       handlePlantPhoto(img);
+    } else if (target === "compare") {
+      handleComparePhoto(img);
     } else if (target === "placement") {
       runPlacementLookup({ imageDataUrl: downscaleImage(img, 768) });
     } else {
@@ -338,13 +347,13 @@ fileInput.addEventListener("change", () => loadPhotoFrom(fileInput));
 // dark grass at the very bottom), even when the real skyline is a subtler,
 // higher-up edge. Scanning top-down for the first strong local edge finds
 // the real skyline instead of the "biggest region" one.
-function detectHorizonTrace() {
-  const w = canvas.width;
-  const h = canvas.height;
+function detectHorizonTrace(targetCanvas = canvas, targetCtx = ctx) {
+  const w = targetCanvas.width;
+  const h = targetCanvas.height;
   if (!w || !h) return null;
   let imageData;
   try {
-    imageData = ctx.getImageData(0, 0, w, h);
+    imageData = targetCtx.getImageData(0, 0, w, h);
   } catch {
     return null; // shouldn't happen (photo is always same-origin/data-URL), but don't crash if it does
   }
@@ -464,7 +473,7 @@ function applyPhoto(img) {
   const detected = detectHorizonTrace();
   if (detected) {
     trace = detected;
-    traceStatus.textContent = "We traced what blocks the sun. Drag the line if a tree or roof looks off.";
+    traceStatus.textContent = "";
   }
   drawCanvas();
   if (!hasLocation()) {
@@ -550,58 +559,19 @@ function loadPhotoFrom(input) {
   reader.readAsDataURL(file);
 }
 
-let tracing = false;
-
-function bucketFromEvent(evt) {
-  const rect = canvas.getBoundingClientRect();
-  const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
-  const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
-  const xFrac = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-  const yFrac = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
-  const bucket = Math.min(BUCKETS - 1, Math.max(0, Math.floor(xFrac * BUCKETS)));
-  return { bucket, yFrac };
-}
-
-function paintTraceAt(evt) {
-  const { bucket, yFrac } = bucketFromEvent(evt);
-  trace[bucket] = yFrac;
-  drawCanvas();
-}
-
-canvas.addEventListener("pointerdown", (e) => {
-  tracing = true;
-  paintTraceAt(e);
-});
-canvas.addEventListener("pointermove", (e) => {
-  if (tracing) paintTraceAt(e);
-});
-window.addEventListener("pointerup", () => {
-  if (tracing) {
-    tracing = false;
-    recompute();
-  }
-});
-
-clearTraceBtn.addEventListener("click", () => {
-  trace = new Array(BUCKETS).fill(null);
-  traceStatus.textContent = "";
-  drawCanvas();
-  recompute();
-});
-
 autoDetectBtn.addEventListener("click", () => {
   if (!photoImg) {
     traceStatus.textContent = "Take or upload a photo first.";
     return;
   }
   trace = new Array(BUCKETS).fill(null);
-  drawCanvas(); // clear any existing trace overlay before re-reading raw pixels
+  drawCanvas();
   const detected = detectHorizonTrace();
   if (detected) {
     trace = detected;
-    traceStatus.textContent = "Horizon re-detected from the photo — drag any point to correct it.";
+    traceStatus.textContent = "Re-analyzed the photo.";
   } else {
-    traceStatus.textContent = "Couldn't auto-detect a horizon from this photo — trace it by clicking along the skyline.";
+    traceStatus.textContent = "Couldn't read a horizon from this photo — try a different one.";
   }
   drawCanvas();
   recompute();
@@ -909,33 +879,18 @@ function drawCanvas() {
     ctx.drawImage(photoImg, 0, 0, canvas.width, canvas.height);
   } else {
     // No photo loaded (e.g. a saved spot reopened without its original
-    // photo) — still show the traced horizon line on a neutral background.
+    // photo) — neutral background so the sun-path dots still have
+    // something to render on.
     ctx.fillStyle = "#fbf1e6";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  const dense = resolvedTrace();
-  if (!dense) return;
-
-  ctx.beginPath();
-  ctx.strokeStyle = "#e8794f";
-  ctx.lineWidth = 3;
-  for (let i = 0; i < BUCKETS; i++) {
-    const x = ((i + 0.5) / BUCKETS) * canvas.width;
-    const y = dense[i] * canvas.height;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.strokeStyle = "rgba(43,31,34,0.3)";
-  ctx.setLineDash([4, 4]);
-  ctx.moveTo(0, canvas.height / 2);
-  ctx.lineTo(canvas.width, canvas.height / 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
+  // The traced horizon itself is never drawn anymore — it's still detected
+  // automatically from the photo's pixels and drives the real sun-hours
+  // math underneath, but showing it as an editable line on screen was a
+  // technical detail that didn't help anyone decide anything. What the
+  // user actually needs to see is where the sun sits (drawSunPathOnPhoto).
+  if (!resolvedTrace()) return;
   drawSunPathOnPhoto();
 }
 
@@ -1194,6 +1149,8 @@ async function loadWeatherAndRisk(token, rows, sunHours, baselineResult) {
 
     const byHour = new Map(hourly.map((w) => [w.hour, w]));
     const biasC = computeBiasC();
+    lastWeatherByHour = byHour;
+    lastWeatherBiasC = biasC;
     const { frostHours, heatHours } = applyRisk(rows, sunHours, byHour, biasC);
     currentFrostHours = frostHours;
     currentHeatHours = heatHours;
@@ -1366,6 +1323,110 @@ function loadPlantPhotoFrom(input) {
 }
 plantCameraInput.addEventListener("change", () => loadPlantPhotoFrom(plantCameraInput));
 plantFileInput.addEventListener("change", () => loadPlantPhotoFrom(plantFileInput));
+
+// --- Compare this spot to another one you're considering ---
+//
+// Reuses the exact same deterministic pipeline as the main spot (solar
+// math + horizon detection + the real already-loaded weather for today,
+// no second network call) so the two sides of the comparison are computed
+// identically — this is a real head-to-head, not two different guesses.
+
+let candidateHeading = 180;
+let candidatePhotoImg = null;
+
+const burnRank = { none: 0, mild: 1, moderate: 2, severe: 3 };
+
+function compareVerdict(sunA, burnA, frostA, sunB, burnB, frostB) {
+  const plant = PlantCare.PLANTS.find((p) => p.id === state.plantId);
+  if (plant && plant.id !== "unsure") {
+    const fitsA = sunA >= plant.min && sunA <= plant.max;
+    const fitsB = sunB >= plant.min && sunB <= plant.max;
+    if (fitsA && !fitsB) return `<b>This spot is better</b> for ${plant.label.toLowerCase()} — it gets enough sun (${sunA}h) and the other spot doesn't (${sunB}h).`;
+    if (fitsB && !fitsA) return `<b>The other spot is better</b> for ${plant.label.toLowerCase()} — it gets enough sun (${sunB}h) and this spot doesn't (${sunA}h).`;
+  }
+
+  const riskA = burnRank[burnA.severity] + (frostA > 0 ? 1 : 0);
+  const riskB = burnRank[burnB.severity] + (frostB > 0 ? 1 : 0);
+  if (riskA < riskB) return `<b>This spot is better</b> — lower sunburn/frost risk (${sunA}h of sun here vs ${sunB}h there).`;
+  if (riskB < riskA) return `<b>The other spot is better</b> — lower sunburn/frost risk (${sunB}h of sun there vs ${sunA}h here).`;
+  if (sunA > sunB) return `About the same risk either way. This spot gets more sun (${sunA}h vs ${sunB}h).`;
+  if (sunB > sunA) return `About the same risk either way. The other spot gets more sun (${sunB}h vs ${sunA}h).`;
+  return `These two spots are about the same — ${sunA}h of sun, similar risk either way.`;
+}
+
+function renderCompareResult(sunA, burnA, frostA, sunB, burnB, frostB) {
+  compareResult.innerHTML = `
+    <div class="whatif-compare">
+      <div class="whatif-stat">
+        <div class="stat-label">This spot</div>
+        <div class="stat-values">${sunA}h sun</div>
+        <div class="stat-delta">${burnA.label}${frostA > 0 ? `, ${frostA}h frost risk` : ""}</div>
+      </div>
+      <div class="whatif-stat">
+        <div class="stat-label">Other spot</div>
+        <div class="stat-values">${sunB}h sun</div>
+        <div class="stat-delta">${burnB.label}${frostB > 0 ? `, ${frostB}h frost risk` : ""}</div>
+      </div>
+    </div>
+    <p class="panel-sub">${compareVerdict(sunA, burnA, frostA, sunB, burnB, frostB)}</p>`;
+}
+
+function handleComparePhoto(img, skipStore) {
+  if (!skipStore) candidatePhotoImg = img;
+  compareFacingChips.hidden = false;
+  if (!hasLocation() || !currentRows.length) {
+    compareResult.innerHTML = `<p class="plant-analysis-status error">Get this spot's results first (photo + location above), then compare.</p>`;
+    return;
+  }
+  compareResult.innerHTML = `<p class="plant-analysis-status">Comparing…</p>`;
+
+  const off = document.createElement("canvas");
+  off.width = 640;
+  off.height = Math.max(1, Math.round((640 * img.height) / img.width));
+  const offCtx = off.getContext("2d");
+  offCtx.drawImage(img, 0, 0, off.width, off.height);
+  const detected = detectHorizonTrace(off, offCtx);
+  if (!detected) {
+    compareResult.innerHTML = `<p class="plant-analysis-status error">Couldn't read a horizon from that photo — try a clearer one.</p>`;
+    return;
+  }
+
+  const [y, m, d] = (state.date || defaultState().date).split("-").map(Number);
+  const { sunHours: sunB, rows: rowsB } = computeSunRows(detected, candidateHeading, state.fov, state.lat, state.lon, y, m, d);
+  if (lastWeatherByHour) applyRisk(rowsB, sunB, lastWeatherByHour, lastWeatherBiasC);
+
+  const burnA = PlantCare.assess(currentRows);
+  const burnB = PlantCare.assess(rowsB);
+  const frostA = frostRiskHours(currentRows).length;
+  const frostB = frostRiskHours(rowsB).length;
+
+  renderCompareResult(currentSunHours, burnA, frostA, sunB, burnB, frostB);
+}
+
+compareFacingChips.querySelectorAll(".chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    candidateHeading = Number(chip.dataset.heading);
+    compareFacingChips.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === chip));
+    if (candidatePhotoImg) handleComparePhoto(candidatePhotoImg, true);
+  });
+});
+
+compareTakePhotoBtn.addEventListener("click", () => openCameraModal("compare", compareCameraInput));
+compareUploadPhotoBtn.addEventListener("click", () => compareFileInput.click());
+
+function loadComparePhotoFrom(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => handleComparePhoto(img);
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+compareCameraInput.addEventListener("change", () => loadComparePhotoFrom(compareCameraInput));
+compareFileInput.addEventListener("change", () => loadComparePhotoFrom(compareFileInput));
 
 // --- AI plain-English summary ---
 //

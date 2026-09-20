@@ -327,8 +327,6 @@ input[type="file"] {
 #trace-canvas {
   display: block;
   width: 100%;
-  cursor: crosshair;
-  touch-action: none;
 }
 
 #heading-row { margin-top: 18px; }

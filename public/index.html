@@ -26,7 +26,7 @@
       </div>
     </div>
     <div class="topbar-actions">
-      <button class="btn-secondary how-it-works-btn" id="how-it-works-btn" type="button">How it works</button>
+      <button class="btn-secondary how-it-works-btn" id="how-it-works-btn" type="button">Welcome</button>
       <button class="btn-secondary reset-data-btn" id="reset-data-btn" type="button">Reset<span class="btn-extra"> all data</span></button>
     </div>
   </header>
@@ -49,43 +49,19 @@
   </div>
 
   <div class="modal-overlay" id="intro-modal" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="intro-heading">
+    <div class="modal welcome-modal" role="dialog" aria-modal="true" aria-labelledby="intro-heading">
       <div class="modal-head">
-        <h2 id="intro-heading">Three steps</h2>
+        <h2 id="intro-heading">Welcome to Microclime</h2>
         <button class="icon-close" id="intro-close" aria-label="Close">✕</button>
       </div>
       <p class="modal-sub">
-        Weather apps only know your zip code. This tells you how much sun
-        one exact spot in your garden actually gets.
+        Weather apps only know your zip code. This tells you the real sun,
+        water, and frost story for one exact spot in your garden — no
+        accounts, photos stay on this device.
       </p>
-
-      <div class="intro-steps">
-        <div class="intro-step">
-          <span class="step-badge">1</span>
-          <div>
-            <div class="intro-step-title">Photo of the spot</div>
-            <div class="intro-step-body">Stand right at your plant or garden bed and take a picture looking out. Trees, fences, and roofs in that photo are what block the sun.</div>
-          </div>
-        </div>
-        <div class="intro-step">
-          <span class="step-badge">2</span>
-          <div>
-            <div class="intro-step-title">See the sun on your photo</div>
-            <div class="intro-step-body">We draw the skyline and today's sun path on the picture. If a sun-dot sits below the line, that hour is shade.</div>
-          </div>
-        </div>
-        <div class="intro-step">
-          <span class="step-badge">3</span>
-          <div>
-            <div class="intro-step-title">Sun, water, and frost advice for what's already there</div>
-            <div class="intro-step-body">Pick what's growing in that spot and get real watering amounts, sunburn risk, and frost risk for it — no guessing the species from a wide garden shot.</div>
-          </div>
-        </div>
-      </div>
-
-      <p class="modal-sub">No accounts. Photos stay on this device.</p>
+      <p class="modal-sub">Start by taking a photo of where your plant is.</p>
       <div class="modal-actions">
-        <button class="btn-primary" id="intro-start-btn" type="button">Got it</button>
+        <button class="btn-primary" id="intro-start-btn" type="button">Get started</button>
       </div>
     </div>
   </div>
@@ -174,8 +150,7 @@
         <canvas id="trace-canvas"></canvas>
       </div>
       <p class="photo-caption" id="photo-caption" hidden>
-        Orange line = what blocks the sun. Dots = where the sun sits each hour today.
-        A filled dot is sun on this spot. An empty dot is shade.
+        Dots = where the sun sits each hour today. A filled dot is sun on this spot. An empty dot is shade.
       </p>
       <p class="field-hint" id="trace-status"></p>
 
@@ -217,8 +192,7 @@
             <input type="number" id="fov-input" min="20" max="120" value="60" />
             <span class="field-hint" id="fov-hint">60 is right for most phones.</span>
           </div>
-          <button class="btn-secondary" id="auto-detect-btn" type="button">Re-trace skyline</button>
-          <button class="btn-secondary" id="clear-trace-btn" type="button">Clear line</button>
+          <button class="btn-secondary" id="auto-detect-btn" type="button">Re-analyze photo</button>
         </div>
       </details>
 
@@ -275,6 +249,26 @@
         <div class="chip-row" id="plant-picker"></div>
         <div class="plant-advice" id="plant-advice"></div>
       </div>
+
+      <details class="more-tools" id="compare-details">
+        <summary>Thinking of moving this plant? Compare this spot to another</summary>
+        <div class="field-row">
+          <p class="field-hint">Take a photo of the other spot you're considering — same plant, same day, so it's a fair comparison.</p>
+        </div>
+        <div class="photo-source-row">
+          <button class="btn-primary" id="compare-take-photo-btn" type="button">Take a photo of the other spot</button>
+          <button class="btn-secondary" id="compare-upload-photo-btn" type="button">Upload a photo</button>
+        </div>
+        <input type="file" id="compare-camera-input" accept="image/*" capture="environment" hidden />
+        <input type="file" id="compare-file-input" accept="image/*" hidden />
+        <div class="chip-row" id="compare-facing-chips" hidden>
+          <button type="button" class="chip" data-heading="0">North</button>
+          <button type="button" class="chip" data-heading="90">East</button>
+          <button type="button" class="chip active" data-heading="180">South</button>
+          <button type="button" class="chip" data-heading="270">West</button>
+        </div>
+        <div id="compare-result"></div>
+      </details>
 
       <details class="plant-care" id="plant-care" hidden>
         <summary>
