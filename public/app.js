@@ -540,16 +540,21 @@ async function tryLocationFromFile(file) {
         setDetectedLocation(gps.lat, gps.lon, `Location detected from your photo.${extra}`);
         return;
       }
-      if (got.length) {
-        locationStatus.textContent = `Photo had no location data, but detected ${got.join(" and ")} — enter your location above.`;
-        recompute();
-        return;
-      }
     }
   } catch {
-    // fall through to the "couldn't find it" message below
+    // fall through to the device-location fallback below
   }
-  locationStatus.textContent = "Couldn't find location data in that photo — enter your location above.";
+  // Most photos taken through a native camera picker (the default path on
+  // phones — see openCamera()) carry no GPS EXIF at all: browsers commonly
+  // strip it, and plenty of camera apps have location tagging turned off.
+  // Without this fallback, hasLocation() stays false, recompute() bails
+  // early, and the whole results panel silently never appears — it just
+  // looks like the app is broken. Ask the device directly instead of
+  // leaving it to the user to notice a small hint and enter it by hand.
+  tryLocationFromDevice(
+    "Location set automatically from your device.",
+    "Couldn't find location data in that photo — enter your location above."
+  );
 }
 
 function loadPhotoFrom(input) {
