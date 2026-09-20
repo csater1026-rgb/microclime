@@ -34,7 +34,7 @@ javascript, html5, css3, vercel, vercel-serverless-functions, open-meteo, google
 
 **Video:** YouTube unlisted link (you still upload the file)
 
-**Images:** intro, horizon photo with the sun line, the hours verdict, plant picker, saved spots
+**Images:** welcome screen, photo with the sun-path dots, the hours verdict, plant picker with watering/sunburn/frost advice, spot-vs-spot comparison
 
 **Continuing an old project?** No. First commit is 2026-08-23, inside the hackathon window. The whole repo was built during the hackathon.
 
@@ -48,11 +48,11 @@ My mom got into gardening and kept getting her plants sunburned. She had no way 
 
 ### What it does
 
-You stand right at the spot where your plant already is and take a photo looking out. Microclime traces the skyline from the photo (trees, fence, roof) and draws today's sun path on that picture. Then it tells you, in plain language, how many hours of sun that spot gets and what that means (full sun, partial sun, or mostly shade).
+You stand right at the spot where your plant already is and take a photo looking out. Microclime reads the skyline from the photo (trees, fence, roof) automatically and draws today's sun path as dots on that picture — no line to trace or drag, it just works. Then it tells you, in plain language, how many hours of sun that spot gets and what that means (full sun, partial sun, or mostly shade).
 
-Tap what you are growing (tomato, lawn, hostas, and so on). It says whether this spot's real sun hours are enough for that plant, a real watering amount and timing, its sunburn risk today, and whether frost could hurt it tonight.
+Tap what you are growing (tomato, lawn, hostas, and so on). It says whether this spot's real sun hours are enough for that plant, a real watering schedule (specific times and how much water at each one), its sunburn risk today, and whether frost could hurt it tonight.
 
-You can save more than one spot and compare them. Optional extras (a close-up plant photo, a what-if tree edit, a neighborhood mockup) stay folded away. They are not the product.
+Thinking about moving that plant? Take a photo of the other spot you're considering and get a real head-to-head verdict — which one gets more sun, which one is less likely to get sunburned, using the exact same math for both. You can also save more than one spot and compare them that way. Optional extras (a close-up plant photo, a what-if tree edit, a neighborhood mockup) stay folded away. They are not the product.
 
 No accounts. Photos stay on your device.
 
@@ -90,4 +90,4 @@ A real shared neighborhood layer (the current one is labeled as a mockup), and m
 - Description: NextStep Hacks 2026 (Earth Forward). Live: https://microclime.vercel.app  Repo: https://github.com/csater1026-rgb/microclime
 - Visibility: Unlisted
 
-If you re-cut the video, keep it under 3 minutes: photo, line on the photo, hours verdict, tap a plant. Skip the extra panels.
+If you re-cut the video, keep it under 3 minutes: welcome, photo, sun-path dots on the picture, hours verdict, tap a plant (watering schedule + sunburn + frost), then the spot-vs-spot comparison. Skip the extra panels.

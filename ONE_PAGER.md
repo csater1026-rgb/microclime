@@ -23,8 +23,8 @@ hour by hour, what the sun and cold actually do there — not what they do
 across your whole zip code.
 
 1. **Real sun-hours engine.** Actual solar-position astronomy (not an API —
-   real trigonometry) combined with a horizon you trace yourself from a
-   photo, producing an hour-by-hour sun/shade chart for any date.
+   real trigonometry) combined with a horizon read automatically from your
+   photo's pixels, producing an hour-by-hour sun/shade chart for any date.
 2. **Frost and heat risk, not just a forecast.** Live weather data is
    adjusted for radiative cooling (clear, calm, dry nights cool fastest) and
    for how much sun that specific spot actually got that day — a shadier
@@ -39,6 +39,11 @@ across your whole zip code.
 5. **Multi-zone mapping.** Save several spots around your garden and they're
    automatically grouped into Full sun / Partial sun / Mostly shade zones,
    each with a real planting suggestion.
+5b. **Spot-vs-spot comparison.** Thinking of moving a plant? Photograph the
+   other spot you're considering and get a real head-to-head verdict —
+   which one gets more sun, which one is less likely to get sunburned —
+   computed with the exact same math and the same day's weather as the
+   original spot, tied to whichever plant you've selected.
 6. **Neighborhood microclimate map (concept demo).** If people nearby used
    it too, spots would combine into a shared map more accurate than any
    single weather station. Building the real multi-user version was out of
