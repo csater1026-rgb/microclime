@@ -10,7 +10,11 @@ const VERTICAL_FOV = 45; // assumed vertical field of view of a phone photo, deg
 
 function defaultState() {
   const today = new Date();
-  const iso = today.toISOString().slice(0, 10);
+  // toISOString() is always UTC — in US timezones, UTC has already rolled
+  // to the next calendar day by early evening, so this used to silently
+  // default the date field to "tomorrow" for anyone testing at night. Use
+  // the browser's own local date fields instead.
+  const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   return {
     lat: null,
     lon: null,
