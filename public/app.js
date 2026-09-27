@@ -624,7 +624,7 @@ function renderSpots() {
       if (typeof lat !== "number" || typeof lon !== "number") {
         return `<div class="spot-card" data-spot-id="${spot.id}">
           <div class="spot-info">
-            <span class="spot-name">${spot.name}</span>
+            <span class="spot-name">${escapeHtml(spot.name)}</span>
             <div class="spot-suggestion">No location saved for this spot — set a location above and reload it to compute sun-hours.</div>
           </div>
           <div class="spot-actions">
@@ -639,7 +639,7 @@ function renderSpots() {
       const zoneClass = zone.label === "Full sun" ? "full-sun" : zone.label === "Partial sun" ? "partial-sun" : "mostly-shade";
       return `<div class="spot-card" data-spot-id="${spot.id}">
         <div class="spot-info">
-          <span class="spot-name">${spot.name}</span>
+          <span class="spot-name">${escapeHtml(spot.name)}</span>
           <span class="spot-zone ${zoneClass}">${zone.label} — ${sunHours}h</span>
           <div class="spot-suggestion">${zone.suggestion}</div>
         </div>
@@ -756,11 +756,14 @@ function renderPlacementResult(plant, mode) {
     .map((spot) => ({ spot, sunHours: computeSpotSunHours(spot) }))
     .filter((r) => r.sunHours !== null);
 
+  // plant.species/notes come from the AI's JSON reply (or its raw,
+  // unparsed-text fallback in api/plant-placement.js) — escape as display
+  // text, never trust as markup.
   const plantCardHtml = `<div class="placement-plant-card">
-    <span class="placement-species">${plant.species || "Unknown plant"}</span>
+    <span class="placement-species">${escapeHtml(plant.species || "Unknown plant")}</span>
     ${mode === "demo" ? ' <span class="plant-analysis-status">(demo mode)</span>' : ""}
     — wants <span class="placement-range">${plant.idealSunHoursMin}-${plant.idealSunHoursMax} hours</span> of direct sun.
-    ${plant.notes ? `<p>${plant.notes}</p>` : ""}
+    ${plant.notes ? `<p>${escapeHtml(plant.notes)}</p>` : ""}
   </div>`;
 
   if (rankable.length === 0) {
@@ -794,7 +797,7 @@ function renderPlacementResult(plant, mode) {
       return `<div class="placement-rank${bestClass}">
         <span class="placement-rank-medal">${medal}</span>
         <div class="placement-rank-info">
-          <div class="placement-rank-name">${r.spot.name}</div>
+          <div class="placement-rank-name">${escapeHtml(r.spot.name)}</div>
           <div class="placement-rank-verdict">${r.verdict}</div>
         </div>
         <span class="placement-rank-hours">${r.sunHours}h</span>
@@ -1218,22 +1221,25 @@ function renderPlantAnalysis(a, mode) {
     plantAnalysisResult.innerHTML = `<p class="plant-analysis-status error">No analysis came back — try another photo.</p>`;
     return;
   }
-  const tips = Array.isArray(a.tips) && a.tips.length ? `<ul class="plant-analysis-tips">${a.tips.map((t) => `<li>${t}</li>`).join("")}</ul>` : "";
+  const tips = Array.isArray(a.tips) && a.tips.length ? `<ul class="plant-analysis-tips">${a.tips.map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ul>` : "";
   const demoNote = mode === "demo" ? `<p class="plant-analysis-status">Demo mode — connect a live AI key for real identification.</p>` : "";
   const schedule = Array.isArray(a.waterSchedule) && a.waterSchedule.length
     ? `<div class="water-times">${a.waterSchedule.map((w) =>
-        `<span class="water-time">Water at <b>${w.time}</b> — ${w.amount}</span>`
+        `<span class="water-time">Water at <b>${escapeHtml(w.time)}</b> — ${escapeHtml(w.amount)}</span>`
       ).join("")}</div>`
     : "";
+  // a/tips/waterSchedule fields come from the AI's JSON reply (or its raw,
+  // unparsed-text fallback in api/plant-analyze.js) — never trust them as
+  // safe markup, only as display text.
   plantAnalysisResult.innerHTML = `
     <div class="plant-analysis-card">
       <div class="plant-analysis-head">
-        <span class="plant-analysis-species">${a.species || "Unknown"}</span>
-        <span class="plant-analysis-confidence ${a.confidence || "low"}">${a.confidence || "low"} confidence</span>
+        <span class="plant-analysis-species">${escapeHtml(a.species || "Unknown")}</span>
+        <span class="plant-analysis-confidence ${["high", "medium", "low"].includes(a.confidence) ? a.confidence : "low"}">${escapeHtml(a.confidence || "low")} confidence</span>
       </div>
-      ${a.sunNeeds ? `<p><b>Sun:</b> ${a.sunNeeds}</p>` : ""}
+      ${a.sunNeeds ? `<p><b>Sun:</b> ${escapeHtml(a.sunNeeds)}</p>` : ""}
       ${schedule}
-      ${a.heatTolerance ? `<p><b>At this spot today:</b> ${a.heatTolerance}</p>` : ""}
+      ${a.heatTolerance ? `<p><b>At this spot today:</b> ${escapeHtml(a.heatTolerance)}</p>` : ""}
       ${tips}
       ${demoNote}
     </div>`;
@@ -1559,7 +1565,8 @@ async function runSummarize(isRetry = false) {
     }
     aiSummary.className = "ai-summary";
     const label = data.mode === "demo" ? "Summary (demo mode)" : "Summary";
-    aiSummary.innerHTML = `<span class="ai-summary-label">${label}</span>${data.summary}`;
+    // data.summary is the AI's free-text reply — display text, not markup.
+    aiSummary.innerHTML = `<span class="ai-summary-label">${label}</span>${escapeHtml(data.summary)}`;
   } catch (err) {
     if (!isRetry) {
       console.warn("Summary request threw, retrying once in 3s…", err);
