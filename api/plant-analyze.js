@@ -11,6 +11,8 @@
 // defaults to Google Gemini, falls back to a scripted demo reply with no
 // API key so the live link is never blank.
 
+import { rateLimit, clientIp } from "./_lib/rateLimit.js";
+
 const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 const DEFAULT_MODEL = "gemini-3.6-flash";
 
@@ -111,6 +113,17 @@ export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const rl = rateLimit(`plant-analyze:${clientIp(req)}`, { limit: 10, windowMs: 60_000 });
+  if (!rl.allowed) {
+    res.setHeader("Retry-After", String(rl.retryAfterSeconds));
+    return res.status(429).json({
+      error: "Too many requests — please wait a bit and try again.",
+      isQuota: false,
+      retryAfterSeconds: rl.retryAfterSeconds,
+      mode: "live",
+    });
   }
 
   let body = req.body;
